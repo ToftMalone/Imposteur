@@ -36,7 +36,6 @@ enum class ImposterMode {
  * other: "Pizza" and "Quiche", "Lion" and "Tigre". Neither side is fixed as the
  * civilians' word -- the deal picks a direction each round.
  */
-@Serializable
 data class WordPair(
     val first: String,
     val second: String,
@@ -45,15 +44,13 @@ data class WordPair(
         get() = first.isNotBlank() && second.isNotBlank() && !first.equals(second, ignoreCase = true)
 }
 
-/** A themed list of word pairs. Built-in packs ship with the app; custom ones are user made. */
-@Serializable
+/** A themed list of word pairs. Every pack ships with the app. */
 data class WordPack(
     val id: String,
     val name: String,
     /** A [PackIcons] key naming the artwork to draw for this pack. */
     val icon: String = PackIcons.DEFAULT,
     val pairs: List<WordPair> = emptyList(),
-    val isCustom: Boolean = false,
 ) {
     /** A pack needs at least one usable pair to be dealt from. */
     val isPlayable: Boolean get() = pairs.any { it.isComplete }

@@ -46,7 +46,6 @@ enum class GamePhase {
 data class GameUiState(
     val players: List<Player> = emptyList(),
     val settings: GameSettings = GameSettings(),
-    val customPacks: List<WordPack> = emptyList(),
     val phase: GamePhase = GamePhase.IDLE,
     val round: Round? = null,
     val roundNumber: Int = 0,
@@ -57,7 +56,7 @@ data class GameUiState(
     val guessWasCorrect: Boolean? = null,
     val error: GameError? = null,
 ) {
-    val allPacks: List<WordPack> get() = WordPacks.BUILT_IN + customPacks
+    val allPacks: List<WordPack> get() = WordPacks.BUILT_IN
 
     val selectedPackCount: Int
         get() = allPacks.count { it.id in settings.selectedPackIds }
@@ -99,9 +98,8 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             combine(
                 repository.players,
                 repository.settings,
-                repository.customPacks,
-            ) { players, settings, packs -> Triple(players, settings, packs) }
-                .collect { (storedPlayers, settings, packs) ->
+            ) { players, settings -> players to settings }
+                .collect { (storedPlayers, settings) ->
                     val current = _state.value
                     // Scores are not persisted, so re-apply the ones this
                     // session has earned rather than resetting mid-game.
@@ -110,7 +108,6 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
                     _state.value = current.copy(
                         players = merged.ifEmpty { current.players },
                         settings = settings,
-                        customPacks = packs,
                     )
                 }
         }
@@ -195,43 +192,6 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         if (selected.isEmpty()) return
         updateSettings(settings.copy(selectedPackIds = selected))
     }
-
-    // --- custom packs -------------------------------------------------------
-
-    fun saveCustomPack(pack: WordPack) {
-        val existing = _state.value.customPacks
-        val updated = if (existing.any { it.id == pack.id }) {
-            existing.map { if (it.id == pack.id) pack else it }
-        } else {
-            existing + pack
-        }
-        _state.value = _state.value.copy(customPacks = updated)
-        viewModelScope.launch { repository.saveCustomPacks(updated) }
-
-        // A freshly created pack is selected so it can be played straight away.
-        if (existing.none { it.id == pack.id } && pack.isPlayable) {
-            updateSettings(
-                _state.value.settings.copy(
-                    selectedPackIds = _state.value.settings.selectedPackIds + pack.id,
-                ),
-            )
-        }
-    }
-
-    fun deleteCustomPack(packId: String) {
-        val updated = _state.value.customPacks.filterNot { it.id == packId }
-        _state.value = _state.value.copy(customPacks = updated)
-        viewModelScope.launch { repository.saveCustomPacks(updated) }
-
-        val selected = _state.value.settings.selectedPackIds - packId
-        updateSettings(
-            _state.value.settings.copy(
-                selectedPackIds = selected.ifEmpty { GameSettings.DEFAULT_SELECTED_PACKS },
-            ),
-        )
-    }
-
-    fun newCustomPackId(): String = "custom-${UUID.randomUUID()}"
 
     // --- round flow ---------------------------------------------------------
 

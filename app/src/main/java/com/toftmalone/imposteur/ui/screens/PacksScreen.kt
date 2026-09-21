@@ -22,10 +22,8 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.AddCircle
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -55,8 +53,6 @@ fun PacksScreen(
     packs: List<WordPack>,
     selectedIds: Set<String>,
     onToggle: (String) -> Unit,
-    onCreate: () -> Unit,
-    onEdit: (String) -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -72,11 +68,9 @@ fun PacksScreen(
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
             CircleIconButton(Icons.Rounded.ArrowBack, "Retour", onBack, background = InkSurface)
-            CreatePackButton(onCreate)
         }
 
         Spacer(Modifier.height(10.dp))
@@ -108,36 +102,9 @@ fun PacksScreen(
                     pack = pack,
                     selected = pack.id in selectedIds,
                     onClick = { onToggle(pack.id) },
-                    onEdit = { onEdit(pack.id) },
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun CreatePackButton(onClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .clip(RoundedCornerShape(22.dp))
-            .background(SuccessGreenDim)
-            .border(1.dp, SuccessGreen.copy(alpha = 0.7f), RoundedCornerShape(22.dp))
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(
-            Icons.Rounded.AddCircle,
-            contentDescription = null,
-            tint = SuccessGreen,
-            modifier = Modifier.size(20.dp),
-        )
-        Text(
-            text = "Créer",
-            style = MaterialTheme.typography.labelLarge,
-            color = SuccessGreen,
-            modifier = Modifier.padding(start = 8.dp),
-        )
     }
 }
 
@@ -146,7 +113,6 @@ private fun PackTile(
     pack: WordPack,
     selected: Boolean,
     onClick: () -> Unit,
-    onEdit: () -> Unit,
 ) {
     val shape = RoundedCornerShape(22.dp)
 
@@ -193,26 +159,6 @@ private fun PackTile(
                 .align(Alignment.TopEnd)
                 .padding(10.dp),
         )
-
-        if (pack.isCustom) {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .padding(8.dp)
-                    .size(32.dp)
-                    .clip(CircleShape)
-                    .background(Color.White.copy(alpha = 0.08f))
-                    .clickable(onClick = onEdit),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    Icons.Rounded.Edit,
-                    contentDescription = "Modifier ${pack.name}",
-                    tint = TextSecondary,
-                    modifier = Modifier.size(16.dp),
-                )
-            }
-        }
     }
 }
 

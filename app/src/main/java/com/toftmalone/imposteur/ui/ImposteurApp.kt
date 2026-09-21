@@ -28,7 +28,6 @@ import com.toftmalone.imposteur.ui.screens.DiscussionScreen
 import com.toftmalone.imposteur.ui.screens.EliminationScreen
 import com.toftmalone.imposteur.ui.screens.HomeScreen
 import com.toftmalone.imposteur.ui.screens.ImposterGuessScreen
-import com.toftmalone.imposteur.ui.screens.PackEditorScreen
 import com.toftmalone.imposteur.ui.screens.PacksScreen
 import com.toftmalone.imposteur.ui.screens.RevealScreen
 import com.toftmalone.imposteur.ui.screens.RoundEndScreen
@@ -42,15 +41,9 @@ private object Routes {
     const val HOME = "home"
     const val SETUP = "setup"
     const val PACKS = "packs"
-    const val PACK_EDITOR = "pack_editor"
     const val RULES = "rules"
     const val SETTINGS = "settings"
     const val GAME = "game"
-
-    /** "new" opens the editor on a blank pack. */
-    fun packEditor(packId: String) = "$PACK_EDITOR/$packId"
-    const val PACK_EDITOR_ROUTE = "$PACK_EDITOR/{packId}"
-    const val NEW_PACK = "new"
 }
 
 @Composable
@@ -106,29 +99,6 @@ fun ImposteurApp(viewModel: GameViewModel = viewModel()) {
                 packs = state.allPacks,
                 selectedIds = state.settings.selectedPackIds,
                 onToggle = viewModel::togglePack,
-                onCreate = { navController.navigate(Routes.packEditor(Routes.NEW_PACK)) },
-                onEdit = { navController.navigate(Routes.packEditor(it)) },
-                onBack = { navController.popBackStack() },
-            )
-        }
-
-        composable(Routes.PACK_EDITOR_ROUTE) { entry ->
-            val packId = entry.arguments?.getString("packId") ?: Routes.NEW_PACK
-            val existing = state.customPacks.firstOrNull { it.id == packId }
-            // Remembered per destination so the id stays stable across recompositions.
-            val newId = remember(packId) { viewModel.newCustomPackId() }
-
-            PackEditorScreen(
-                existing = existing,
-                newPackId = newId,
-                onSave = {
-                    viewModel.saveCustomPack(it)
-                    navController.popBackStack()
-                },
-                onDelete = {
-                    viewModel.deleteCustomPack(it)
-                    navController.popBackStack()
-                },
                 onBack = { navController.popBackStack() },
             )
         }

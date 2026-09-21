@@ -21,13 +21,12 @@ jusqu'au bout.
 | 👥 **Imposteurs multiples** | Jusqu'à la moitié de la table moins un, avec option « les imposteurs se connaissent ». |
 | 🎨 **Illustrations maison** | 16 portraits de joueurs, 24 icônes de packs et 7 icônes d'interface, dessinés en vectoriel (`VectorDrawable`) : nets à toute taille, aucune dépendance aux emoji système. |
 | 🗂️ **24 packs de mots** | Animaux, Lieux, Métiers, Nourriture, Sports, Films & Séries, Marques, Transports, Objets, Musique, Jeux vidéo, Célébrités, École, Maison, Technologie, Fêtes, Corps, Vêtements, Histoire & Mythologie, Situations, Émotions, Villes & France, Fantastique, Météo. **2 177 paires**, soit 4 354 mots. |
-| ➕ **Packs personnalisés** | Créez vos propres thèmes (nom, icône, paires de mots), modifiables et supprimables. |
 | 🃏 **Révélation sans fuite** | Fond neutre tant que le téléphone circule : la couleur du rôle n'apparaît qu'une fois la carte retournée, pour que le joueur précédent ne devine rien. |
 | 🗣️ **Ordre de parole** | Aléatoire ou dans l'ordre de la liste, affiché pendant la discussion. |
 | 🗳️ **Vote & élimination** | La table désigne un suspect, son rôle est révélé, la manche continue ou s'arrête. |
 | 🎯 **Dernière chance** | Un imposteur démasqué peut deviner le mot des civils pour voler la victoire (comparaison insensible à la casse, aux accents et à la ponctuation). |
 | 🏆 **Scores de session** | Classement cumulé entre les manches, remis à zéro à chaque lancement de l'app. |
-| 💾 **Réglages sauvegardés** | Joueurs, avatars, options et packs personnalisés survivent à la fermeture de l'app (DataStore) — les scores, non. |
+| 💾 **Réglages sauvegardés** | Joueurs, avatars et options survivent à la fermeture de l'app (DataStore) — les scores, non. |
 
 ---
 
@@ -38,7 +37,7 @@ Accueil ──┬─► Configuration ──► Partie ──► Révélation �
           │     (joueurs,                     ▲              │           │
           │      imposteurs,                  └──────────────┴──► Élimination
           │      rôle, packs)                                          │
-          ├─► Packs ──► Éditeur                          Dernière chance ┤
+          ├─► Packs                                      Dernière chance ┤
           ├─► Comment jouer                                             │
           └─► Paramètres                                 Fin de manche ◄┘
 ```
@@ -54,7 +53,7 @@ app/src/main/java/com/toftmalone/imposteur/
 │   ├── Models.kt                # Player, WordPair, WordPack, GameSettings, Round…
 │   ├── WordPacks.kt             # les 24 packs intégrés
 │   ├── Avatars.kt               # avatars emoji + prénoms par défaut
-│   └── ImposteurRepository.kt   # persistance DataStore + kotlinx.serialization
+│   └── ImposteurRepository.kt   # persistance DataStore (joueurs + réglages)
 ├── game/
 │   ├── GameEngine.kt            # règles pures : distribution, votes, score
 │   └── GameViewModel.kt         # état de la partie, minuterie, navigation de phase
@@ -62,7 +61,7 @@ app/src/main/java/com/toftmalone/imposteur/
     ├── ImposteurApp.kt          # NavHost + orchestration des phases de jeu
     ├── theme/                   # couleurs, typographie, thème Material 3
     ├── components/Common.kt     # boutons, avatars, steppers, interrupteurs
-    └── screens/                 # 9 écrans
+    └── screens/                 # 8 écrans
 ```
 
 **Choix techniques**
@@ -73,6 +72,9 @@ app/src/main/java/com/toftmalone/imposteur/
   testables sur la JVM sans émulateur.
 - **État unique** (`GameUiState`) exposé en `StateFlow` depuis le `GameViewModel` ;
   les écrans sont des fonctions d'affichage sans état métier.
+- **Contenu figé** : les packs sont compilés dans l'app, il n'y a pas
+  d'éditeur de packs. Une paire mal fichue se corrige dans `WordPacks.kt`,
+  où les tests la valident.
 - **Aucune permission** demandée, aucun accès réseau.
 - **Toute l'imagerie est vectorielle et embarquée** : les emoji rendent
   différemment selon le constructeur et la version d'Android, les
