@@ -9,7 +9,7 @@ object WordPacks {
     val ANIMAUX = WordPack(
         id = "animaux",
         name = "Animaux & Nature",
-        emoji = "🦁",
+        icon = "lion",
         words = listOf(
             "Lion", "Éléphant", "Girafe", "Pingouin", "Dauphin", "Requin", "Papillon", "Abeille",
             "Coccinelle", "Hérisson", "Renard", "Loup", "Ours", "Kangourou", "Panda", "Koala",
@@ -26,7 +26,7 @@ object WordPacks {
     val LIEUX = WordPack(
         id = "lieux",
         name = "Monde & Lieux",
-        emoji = "🌍",
+        icon = "globe",
         words = listOf(
             "Paris", "Tokyo", "New York", "Londres", "Rome", "Barcelone", "Le Caire", "Sydney",
             "Moscou", "Berlin", "Amsterdam", "Venise", "Istanbul", "Rio de Janeiro", "Marrakech",
@@ -43,7 +43,7 @@ object WordPacks {
     val METIERS = WordPack(
         id = "metiers",
         name = "Métiers",
-        emoji = "🩺",
+        icon = "helmet",
         words = listOf(
             "Médecin", "Infirmier", "Pompier", "Policier", "Avocat", "Juge", "Professeur",
             "Boulanger", "Boucher", "Cuisinier", "Serveur", "Pâtissier", "Coiffeur", "Plombier",
@@ -60,7 +60,7 @@ object WordPacks {
     val NOURRITURE = WordPack(
         id = "nourriture",
         name = "Nourriture & Boissons",
-        emoji = "🍔",
+        icon = "burger",
         words = listOf(
             "Pizza", "Burger", "Frites", "Sushi", "Pâtes", "Lasagnes", "Crêpe", "Gaufre",
             "Croissant", "Baguette", "Sandwich", "Kebab", "Tacos", "Paella", "Couscous",
@@ -76,7 +76,7 @@ object WordPacks {
     val SPORTS = WordPack(
         id = "sports",
         name = "Sports",
-        emoji = "⚽",
+        icon = "ball",
         words = listOf(
             "Football", "Basketball", "Tennis", "Rugby", "Handball", "Volleyball", "Natation",
             "Athlétisme", "Marathon", "Cyclisme", "Ski", "Snowboard", "Patinage", "Hockey",
@@ -92,7 +92,7 @@ object WordPacks {
     val FILMS = WordPack(
         id = "films",
         name = "Films & Séries",
-        emoji = "🎬",
+        icon = "clapper",
         words = listOf(
             "Titanic", "Avatar", "Le Parrain", "Star Wars", "Harry Potter",
             "Le Seigneur des Anneaux", "Jurassic Park", "Matrix", "Inception", "Interstellar",
@@ -111,7 +111,7 @@ object WordPacks {
     val MARQUES = WordPack(
         id = "marques",
         name = "Marques",
-        emoji = "🏷️",
+        icon = "tag",
         words = listOf(
             "Nike", "Adidas", "Puma", "Coca-Cola", "Pepsi", "McDonald's", "Burger King", "KFC",
             "Starbucks", "Apple", "Samsung", "Google", "Microsoft", "Amazon", "Netflix",
@@ -126,7 +126,7 @@ object WordPacks {
     val TRANSPORTS = WordPack(
         id = "transports",
         name = "Transports",
-        emoji = "🚗",
+        icon = "car",
         words = listOf(
             "Voiture", "Vélo", "Trottinette", "Moto", "Scooter", "Bus", "Tramway", "Métro",
             "Train", "TGV", "Avion", "Hélicoptère", "Montgolfière", "Fusée", "Bateau", "Voilier",
@@ -142,7 +142,7 @@ object WordPacks {
     val OBJETS = WordPack(
         id = "objets",
         name = "Objets du quotidien",
-        emoji = "🧰",
+        icon = "tools",
         words = listOf(
             "Brosse à dents", "Parapluie", "Lunettes", "Montre", "Portefeuille", "Clés",
             "Sac à dos", "Valise", "Miroir", "Peigne", "Rasoir", "Serviette", "Savon",
@@ -158,7 +158,7 @@ object WordPacks {
     val MUSIQUE = WordPack(
         id = "musique",
         name = "Musique",
-        emoji = "🎵",
+        icon = "note",
         words = listOf(
             "Guitare", "Piano", "Violon", "Batterie", "Flûte", "Saxophone", "Trompette", "Harpe",
             "Accordéon", "Ukulélé", "Basse", "Clarinette", "Trombone", "Violoncelle", "Orgue",
@@ -173,7 +173,7 @@ object WordPacks {
     val JEUX_VIDEO = WordPack(
         id = "jeuxvideo",
         name = "Jeux vidéo",
-        emoji = "🎮",
+        icon = "gamepad",
         words = listOf(
             "Minecraft", "Fortnite", "Mario", "Zelda", "Pokémon", "Sonic", "Tetris", "Pac-Man",
             "Among Us", "Fall Guys", "Roblox", "Call of Duty", "GTA", "FIFA", "Rocket League",
@@ -189,7 +189,7 @@ object WordPacks {
     val CELEBRITES = WordPack(
         id = "celebrites",
         name = "Célébrités",
-        emoji = "⭐",
+        icon = "star",
         words = listOf(
             "Albert Einstein", "Napoléon", "Cléopâtre", "Léonard de Vinci", "Mozart",
             "Beethoven", "Van Gogh", "Picasso", "Shakespeare", "Marie Curie",
@@ -209,7 +209,7 @@ object WordPacks {
     val ECOLE = WordPack(
         id = "ecole",
         name = "École",
-        emoji = "🎒",
+        icon = "backpack",
         words = listOf(
             "Cartable", "Trousse", "Stylo", "Crayon", "Gomme", "Règle", "Compas",
             "Calculatrice", "Cahier", "Classeur", "Manuel", "Tableau", "Craie", "Feutre",
@@ -225,7 +225,7 @@ object WordPacks {
     val MAISON = WordPack(
         id = "maison",
         name = "Maison",
-        emoji = "🏠",
+        icon = "house",
         words = listOf(
             "Salon", "Cuisine", "Chambre", "Salle de bain", "Toilettes", "Garage", "Grenier",
             "Cave", "Jardin", "Balcon", "Terrasse", "Couloir", "Escalier", "Porte", "Fenêtre",
@@ -240,7 +240,7 @@ object WordPacks {
     val TECHNOLOGIE = WordPack(
         id = "technologie",
         name = "Technologie",
-        emoji = "💻",
+        icon = "laptop",
         words = listOf(
             "Ordinateur", "Smartphone", "Tablette", "Montre connectée", "Écran", "Clavier",
             "Souris", "Imprimante", "Scanner", "Webcam", "Casque VR", "Drone", "Robot",
@@ -257,7 +257,7 @@ object WordPacks {
     val FETES = WordPack(
         id = "fetes",
         name = "Fêtes & Événements",
-        emoji = "🎉",
+        icon = "party",
         words = listOf(
             "Anniversaire", "Noël", "Nouvel An", "Pâques", "Halloween", "Carnaval", "Mariage",
             "Baptême", "Fête de la musique", "14 juillet", "Saint-Valentin", "Fête des mères",
@@ -274,7 +274,7 @@ object WordPacks {
     val CORPS = WordPack(
         id = "corps",
         name = "Corps & Santé",
-        emoji = "🫀",
+        icon = "heart",
         words = listOf(
             "Tête", "Cheveux", "Front", "Sourcil", "Œil", "Nez", "Bouche", "Dent", "Langue",
             "Oreille", "Menton", "Joue", "Cou", "Épaule", "Bras", "Coude", "Poignet", "Main",
@@ -289,7 +289,7 @@ object WordPacks {
     val VETEMENTS = WordPack(
         id = "vetements",
         name = "Vêtements",
-        emoji = "👗",
+        icon = "shirt",
         words = listOf(
             "T-shirt", "Chemise", "Pull", "Sweat", "Veste", "Manteau", "Blouson", "Imperméable",
             "Gilet", "Pantalon", "Jean", "Short", "Jupe", "Robe", "Costume", "Cravate",
@@ -305,7 +305,7 @@ object WordPacks {
     val HISTOIRE = WordPack(
         id = "histoire",
         name = "Histoire & Mythologie",
-        emoji = "🏛️",
+        icon = "temple",
         words = listOf(
             "Zeus", "Poséidon", "Hadès", "Athéna", "Apollon", "Artémis", "Arès", "Aphrodite",
             "Hermès", "Héra", "Hercule", "Achille", "Ulysse", "Icare", "Méduse", "Minotaure",
@@ -321,7 +321,7 @@ object WordPacks {
     val ACTIONS = WordPack(
         id = "actions",
         name = "Situations & Actions",
-        emoji = "🎭",
+        icon = "theatre",
         words = listOf(
             "Dormir", "Courir", "Nager", "Danser", "Chanter", "Rire", "Pleurer", "Éternuer",
             "Bâiller", "Cuisiner", "Manger", "Boire", "Conduire", "Téléphoner", "Lire",

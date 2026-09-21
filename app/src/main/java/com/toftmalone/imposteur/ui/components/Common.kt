@@ -35,8 +35,6 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.toftmalone.imposteur.data.Avatars
 import com.toftmalone.imposteur.ui.theme.BrandGradient
 import com.toftmalone.imposteur.ui.theme.InkOutline
 import com.toftmalone.imposteur.ui.theme.InkSurface
@@ -136,7 +134,7 @@ fun CircleIconButton(
     }
 }
 
-/** Emoji avatar on its own gradient, sized for lists or for the reveal card. */
+/** Player portrait on its own gradient, sized for lists or for the reveal card. */
 @Composable
 fun AvatarBadge(
     avatar: Int,
@@ -153,7 +151,7 @@ fun AvatarBadge(
             .then(modifier),
         contentAlignment = Alignment.Center,
     ) {
-        Text(text = Avatars.emojiAt(avatar), fontSize = (size * 0.5).sp)
+        AvatarArtworkFill(avatar)
     }
 }
 

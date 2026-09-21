@@ -18,6 +18,7 @@ jusqu'au bout.
 | 🃏 **Révélation à la main** | On passe le téléphone, chacun découvre son rôle puis **glisse la carte vers le haut** pour voir son mot. |
 | 🎭 **3 modes d'imposteur** | *Mot différent* (un autre mot du même thème), *Thème seulement* (juste la catégorie), *Sans indice* (mode expert, l'imposteur ne sait rien). |
 | 👥 **Imposteurs multiples** | Jusqu'à la moitié de la table moins un, avec option « les imposteurs se connaissent ». |
+| 🎨 **Illustrations maison** | 16 portraits de joueurs, 20 icônes de packs et 7 icônes d'interface, dessinés en vectoriel (`VectorDrawable`) : nets à toute taille, ~180 Ko en tout, aucune dépendance aux emoji système. |
 | 🗂️ **20 packs de mots** | Animaux, Lieux, Métiers, Nourriture, Sports, Films & Séries, Marques, Transports, Objets, Musique, Jeux vidéo, Célébrités, École, Maison, Technologie, Fêtes, Corps, Vêtements, Histoire & Mythologie, Situations. **1 051 mots** au total. |
 | ➕ **Packs personnalisés** | Créez vos propres thèmes (nom, icône, liste de mots), modifiables et supprimables. |
 | ⏱️ **Chronomètre** | Discussion minutée (désactivable, de 1 à 10 min) avec anneau de progression. |
@@ -72,6 +73,9 @@ app/src/main/java/com/toftmalone/imposteur/
 - **État unique** (`GameUiState`) exposé en `StateFlow` depuis le `GameViewModel` ;
   les écrans sont des fonctions d'affichage sans état métier.
 - **Aucune permission** demandée, aucun accès réseau.
+- **Toute l'imagerie est vectorielle et embarquée** : les emoji rendent
+  différemment selon le constructeur et la version d'Android, les
+  `VectorDrawable` non.
 
 ---
 

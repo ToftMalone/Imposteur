@@ -36,9 +36,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.toftmalone.imposteur.data.WordPack
 import com.toftmalone.imposteur.ui.components.CircleIconButton
+import com.toftmalone.imposteur.ui.components.PackIcon
 import com.toftmalone.imposteur.ui.theme.Ink
 import com.toftmalone.imposteur.ui.theme.InkSurface
 import com.toftmalone.imposteur.ui.theme.SuccessGreen
@@ -170,7 +170,7 @@ private fun PackTile(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
-            Text(text = pack.emoji, fontSize = 52.sp)
+            PackIcon(icon = pack.icon, size = 58)
             Spacer(Modifier.height(12.dp))
             Text(
                 text = pack.name,

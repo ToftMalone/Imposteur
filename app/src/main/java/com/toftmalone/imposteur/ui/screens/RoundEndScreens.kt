@@ -32,12 +32,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.toftmalone.imposteur.data.Player
 import com.toftmalone.imposteur.data.RoundOutcome
 import com.toftmalone.imposteur.ui.components.AvatarBadge
 import com.toftmalone.imposteur.ui.components.PrimaryButton
 import com.toftmalone.imposteur.ui.components.SecondaryButton
+import com.toftmalone.imposteur.ui.components.UiArt
+import com.toftmalone.imposteur.ui.components.UiIcon
 import com.toftmalone.imposteur.ui.theme.CivilBlue
 import com.toftmalone.imposteur.ui.theme.ImposteurRed
 import com.toftmalone.imposteur.ui.theme.Ink
@@ -126,7 +127,7 @@ fun ImposterGuessScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Spacer(Modifier.height(40.dp))
-        Text("🎯", fontSize = 64.sp)
+        UiIcon(UiArt.TARGET, size = 78)
         Spacer(Modifier.height(16.dp))
         Text(
             text = "Dernière chance",
@@ -217,7 +218,7 @@ fun RoundEndScreen(
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Text(text = if (civilsWon) "🎉" else "🥷", fontSize = 60.sp)
+            UiIcon(if (civilsWon) UiArt.TROPHY else UiArt.MASK, size = 76)
             Spacer(Modifier.height(10.dp))
             Text(
                 text = when (outcome) {

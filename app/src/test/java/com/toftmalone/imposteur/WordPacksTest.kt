@@ -1,6 +1,7 @@
 package com.toftmalone.imposteur
 
 import com.toftmalone.imposteur.data.GameSettings
+import com.toftmalone.imposteur.data.PackIcons
 import com.toftmalone.imposteur.data.WordPacks
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -20,7 +21,7 @@ class WordPacksTest {
         WordPacks.BUILT_IN.forEach { pack ->
             assertTrue(pack.isPlayable, "${pack.id} needs at least two words")
             assertTrue(pack.words.size >= 40, "${pack.id} only has ${pack.words.size} words")
-            assertTrue(pack.emoji.isNotBlank(), "${pack.id} has no emoji")
+            assertTrue(PackIcons.isKnown(pack.icon), "${pack.id} has an unknown icon: ${pack.icon}")
             assertTrue(pack.name.isNotBlank(), "${pack.id} has no name")
         }
     }
@@ -41,6 +42,20 @@ class WordPacksTest {
                 assertEquals(word.trim(), word, "${pack.id} has padding around '$word'")
             }
         }
+    }
+
+    @Test
+    fun `every pack icon has artwork and the set is used`() {
+        val used = WordPacks.BUILT_IN.map { it.icon }.toSet()
+        PackIcons.ALL.forEach { key ->
+            assertTrue(key.isNotBlank(), "blank icon key")
+        }
+        assertEquals(PackIcons.ALL.size, PackIcons.ALL.toSet().size, "duplicate icon key")
+        assertTrue(PackIcons.isKnown(PackIcons.DEFAULT), "default icon is not a known key")
+        assertEquals(
+            WordPacks.BUILT_IN.size, used.size,
+            "each built-in pack should have its own icon, got $used",
+        )
     }
 
     @Test

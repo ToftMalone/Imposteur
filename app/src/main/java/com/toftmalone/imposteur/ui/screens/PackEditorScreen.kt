@@ -45,9 +45,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.toftmalone.imposteur.data.PackIcons
 import com.toftmalone.imposteur.data.WordPack
 import com.toftmalone.imposteur.ui.components.CircleIconButton
+import com.toftmalone.imposteur.ui.components.PackIcon
 import com.toftmalone.imposteur.ui.components.PrimaryButton
 import com.toftmalone.imposteur.ui.theme.BrandOrange
 import com.toftmalone.imposteur.ui.theme.ImposteurRed
@@ -56,13 +57,6 @@ import com.toftmalone.imposteur.ui.theme.InkSurface
 import com.toftmalone.imposteur.ui.theme.SuccessGreen
 import com.toftmalone.imposteur.ui.theme.TextPrimary
 import com.toftmalone.imposteur.ui.theme.TextSecondary
-
-/** Emoji offered as pack covers. */
-private val PACK_EMOJIS = listOf(
-    "🎯", "🌟", "🔥", "🌈", "🍕", "🎸",
-    "👻", "🦄", "🏆", "🎨", "🧩", "🚀",
-    "🌺", "🎂", "📚", "🧳", "❄️", "🎪",
-)
 
 /**
  * Create or edit a custom pack. A pack needs a name and at least two words
@@ -78,7 +72,7 @@ fun PackEditorScreen(
     modifier: Modifier = Modifier,
 ) {
     var name by remember(existing?.id) { mutableStateOf(existing?.name.orEmpty()) }
-    var emoji by remember(existing?.id) { mutableStateOf(existing?.emoji ?: PACK_EMOJIS.first()) }
+    var icon by remember(existing?.id) { mutableStateOf(existing?.icon ?: PackIcons.DEFAULT) }
     val words = remember(existing?.id) { existing?.words.orEmpty().toMutableStateList() }
     var draft by remember(existing?.id) { mutableStateOf("") }
 
@@ -143,11 +137,11 @@ fun PackEditorScreen(
                 Text("Icône", style = MaterialTheme.typography.labelMedium, color = TextSecondary)
                 Spacer(Modifier.height(8.dp))
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(PACK_EMOJIS) { candidate ->
-                        val selected = candidate == emoji
+                    items(PackIcons.ALL) { candidate ->
+                        val selected = candidate == icon
                         Box(
                             modifier = Modifier
-                                .size(54.dp)
+                                .size(58.dp)
                                 .clip(RoundedCornerShape(16.dp))
                                 .background(if (selected) BrandOrange.copy(alpha = 0.22f) else InkSurface)
                                 .border(
@@ -155,10 +149,10 @@ fun PackEditorScreen(
                                     color = if (selected) BrandOrange else Color.White.copy(alpha = 0.07f),
                                     shape = RoundedCornerShape(16.dp),
                                 )
-                                .clickable { emoji = candidate },
+                                .clickable { icon = candidate },
                             contentAlignment = Alignment.Center,
                         ) {
-                            Text(candidate, fontSize = 26.sp)
+                            PackIcon(icon = candidate, size = 36)
                         }
                     }
                 }
@@ -246,7 +240,7 @@ fun PackEditorScreen(
                     WordPack(
                         id = existing?.id ?: newPackId,
                         name = name.trim(),
-                        emoji = emoji,
+                        icon = icon,
                         words = words.toList(),
                         isCustom = true,
                     ),

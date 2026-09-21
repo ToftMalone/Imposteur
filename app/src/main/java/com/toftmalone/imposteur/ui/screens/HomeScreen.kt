@@ -30,7 +30,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.toftmalone.imposteur.ui.components.AvatarArtwork
 import com.toftmalone.imposteur.ui.components.BrandBackground
 import com.toftmalone.imposteur.ui.components.PrimaryButton
 import com.toftmalone.imposteur.ui.components.SecondaryButton
@@ -123,6 +123,7 @@ private fun FloatingLogo() {
             .background(Color.White.copy(alpha = 0.16f)),
         contentAlignment = Alignment.Center,
     ) {
-        Text(text = "🕵️", fontSize = 84.sp)
+        // Avatar 0 is the detective, which doubles as the app mark.
+        AvatarArtwork(avatar = 0, modifier = Modifier.size(126.dp))
     }
 }

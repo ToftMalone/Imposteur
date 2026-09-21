@@ -31,7 +31,8 @@ enum class ImposterMode {
 data class WordPack(
     val id: String,
     val name: String,
-    val emoji: String,
+    /** A [PackIcons] key naming the artwork to draw for this pack. */
+    val icon: String = PackIcons.DEFAULT,
     val words: List<String>,
     val isCustom: Boolean = false,
 ) {

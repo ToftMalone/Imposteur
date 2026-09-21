@@ -27,9 +27,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.toftmalone.imposteur.game.Scoring
 import com.toftmalone.imposteur.ui.components.CircleIconButton
+import com.toftmalone.imposteur.ui.components.UiArt
+import com.toftmalone.imposteur.ui.components.UiIcon
 import com.toftmalone.imposteur.ui.theme.BrandOrange
 import com.toftmalone.imposteur.ui.theme.CivilBlue
 import com.toftmalone.imposteur.ui.theme.ImposteurRed
@@ -38,36 +39,36 @@ import com.toftmalone.imposteur.ui.theme.InkSurface
 import com.toftmalone.imposteur.ui.theme.TextPrimary
 import com.toftmalone.imposteur.ui.theme.TextSecondary
 
-private data class RuleStep(val emoji: String, val title: String, val body: String)
+private data class RuleStep(val art: UiArt, val title: String, val body: String)
 
 private val STEPS = listOf(
     RuleStep(
-        "📱",
+        UiArt.PHONE,
         "1. Passez le téléphone",
         "Chacun son tour, un joueur prend le téléphone, découvre son rôle et glisse la carte vers le haut pour voir son mot.",
     ),
     RuleStep(
-        "👥",
+        UiArt.PEOPLE,
         "2. Civils et imposteurs",
         "Les civils partagent tous le même mot. Les imposteurs en ont un autre — ou aucun, selon le mode choisi.",
     ),
     RuleStep(
-        "💬",
+        UiArt.SPEECH,
         "3. Décrivez sans trahir",
         "À tour de rôle, donnez un seul indice sur votre mot. Assez précis pour prouver que vous le connaissez, assez vague pour ne pas l'offrir aux imposteurs.",
     ),
     RuleStep(
-        "🗳️",
+        UiArt.VOTE,
         "4. Votez",
         "Débattez, puis désignez ensemble le joueur le plus suspect. Il est éliminé et son rôle est révélé.",
     ),
     RuleStep(
-        "🏆",
+        UiArt.TROPHY,
         "5. Qui l'emporte ?",
         "Les civils gagnent si tous les imposteurs sont démasqués. Les imposteurs gagnent dès qu'ils deviennent aussi nombreux que les civils.",
     ),
     RuleStep(
-        "🎯",
+        UiArt.TARGET,
         "6. La dernière chance",
         "Un imposteur démasqué peut tenter de deviner le mot des civils. S'il tombe juste, il vole la victoire.",
     ),
@@ -142,7 +143,7 @@ private fun StepCard(step: RuleStep) {
                 .background(BrandOrange.copy(alpha = 0.16f)),
             contentAlignment = Alignment.Center,
         ) {
-            Text(step.emoji, fontSize = 24.sp)
+            UiIcon(step.art, size = 26)
         }
         Column(Modifier.padding(start = 14.dp)) {
             Text(step.title, style = MaterialTheme.typography.titleMedium, color = TextPrimary)

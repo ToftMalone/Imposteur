@@ -50,12 +50,14 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.toftmalone.imposteur.data.Assignment
-import com.toftmalone.imposteur.data.Avatars
 import com.toftmalone.imposteur.data.Player
 import com.toftmalone.imposteur.data.Role
+import com.toftmalone.imposteur.ui.components.AvatarArtwork
+import com.toftmalone.imposteur.ui.components.AvatarBadge
 import com.toftmalone.imposteur.ui.components.CircleIconButton
+import com.toftmalone.imposteur.ui.components.UiArt
+import com.toftmalone.imposteur.ui.components.UiIcon
 import com.toftmalone.imposteur.ui.components.PrimaryButton
 import com.toftmalone.imposteur.ui.theme.CivilBlue
 import com.toftmalone.imposteur.ui.theme.CivilCardGradient
@@ -200,7 +202,7 @@ private fun HandOverPanel(
             color = Color.White.copy(alpha = 0.85f),
         )
         Spacer(Modifier.height(14.dp))
-        Text(text = Avatars.emojiAt(player.avatar), fontSize = 92.sp)
+        AvatarBadge(avatar = player.avatar, size = 132)
         Spacer(Modifier.height(10.dp))
         Text(
             text = player.name,
@@ -279,7 +281,12 @@ private fun SecretCard(
                     },
                 contentAlignment = Alignment.Center,
             ) {
-                Text(text = Avatars.emojiAt(player.avatar), fontSize = 140.sp)
+                // No badge here: the card itself is the role colour, so the
+                // portrait floats straight on it.
+                AvatarArtwork(
+                    avatar = player.avatar,
+                    modifier = Modifier.fillMaxWidth(0.82f),
+                )
 
                 SwipeHint(
                     modifier = Modifier
@@ -369,7 +376,7 @@ private fun SecretContent(
                 textAlign = TextAlign.Center,
             )
         } else {
-            Text(text = "🤫", fontSize = 64.sp)
+            UiIcon(UiArt.MASK, size = 78)
             Spacer(Modifier.height(10.dp))
             Text(
                 text = "Tu n'as pas de mot",
