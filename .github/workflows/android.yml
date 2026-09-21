@@ -57,6 +57,11 @@ jobs:
       - name: Unit tests
         run: ./gradlew testDebugUnitTest --console=plain --stacktrace
 
+      # A passing test task with zero tests would otherwise look identical to a
+      # real green run, so assert that tests actually executed.
+      - name: Check tests actually ran
+        run: python3 scripts/check-test-results.py
+
       - name: Assemble debug APK
         run: ./gradlew assembleDebug --console=plain --stacktrace
 

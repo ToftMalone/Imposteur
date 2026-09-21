@@ -1,5 +1,7 @@
 # 🕵️ Imposteur
 
+[![Android CI](https://github.com/ToftMalone/Imposteur/actions/workflows/android.yml/badge.svg?branch=claude%2Fwizardly-ride-d93oat)](https://github.com/ToftMalone/Imposteur/actions/workflows/android.yml)
+
 Jeu de soirée **hors-ligne** pour Android, à un seul téléphone que l'on se passe
 autour de la table. Tous les joueurs reçoivent le même mot secret… sauf les
 imposteurs. Décrivez votre mot sans le dire, démasquez l'intrus — ou bluffez
@@ -107,6 +109,12 @@ Le plus simple est d'ouvrir le dossier dans Android Studio (Ladybug ou plus réc
 ```bash
 ./gradlew testDebugUnitTest
 ```
+
+Le workflow `.github/workflows/android.yml` rejoue tout à chaque push :
+compilation Kotlin/Compose, tests unitaires, puis assemblage de l'APK de debug,
+publié comme artefact `imposteur-debug-apk`. Une étape dédiée vérifie que des
+tests ont bien été exécutés — un `BUILD SUCCESSFUL` sur zéro test est traité
+comme un échec.
 
 ---
 
