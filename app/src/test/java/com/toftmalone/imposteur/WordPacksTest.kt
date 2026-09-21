@@ -20,10 +20,16 @@ class WordPacksTest {
     fun `every pack is playable and reasonably large`() {
         WordPacks.BUILT_IN.forEach { pack ->
             assertTrue(pack.isPlayable, "${pack.id} needs at least two words")
-            assertTrue(pack.words.size >= 40, "${pack.id} only has ${pack.words.size} words")
+            assertTrue(pack.words.size >= 100, "${pack.id} only has ${pack.words.size} words")
             assertTrue(PackIcons.isKnown(pack.icon), "${pack.id} has an unknown icon: ${pack.icon}")
             assertTrue(pack.name.isNotBlank(), "${pack.id} has no name")
         }
+    }
+
+    @Test
+    fun `the built-in library is large enough for long sessions`() {
+        val total = WordPacks.BUILT_IN.sumOf { it.words.size }
+        assertTrue(total >= 3000, "only $total words across ${WordPacks.BUILT_IN.size} packs")
     }
 
     @Test

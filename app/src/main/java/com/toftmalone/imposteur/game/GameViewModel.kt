@@ -12,8 +12,6 @@ import com.toftmalone.imposteur.data.RoundOutcome
 import com.toftmalone.imposteur.data.WordPack
 import com.toftmalone.imposteur.data.WordPacks
 import java.util.UUID
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -57,8 +55,6 @@ data class GameUiState(
     val lastElimination: EliminationResult? = null,
     val outcome: RoundOutcome? = null,
     val guessWasCorrect: Boolean? = null,
-    val secondsLeft: Int = 0,
-    val timerRunning: Boolean = false,
     val error: GameError? = null,
 ) {
     val allPacks: List<WordPack> get() = WordPacks.BUILT_IN + customPacks
@@ -98,8 +94,6 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     private val _state = MutableStateFlow(GameUiState())
     val state: StateFlow<GameUiState> = _state.asStateFlow()
 
-    private var timerJob: Job? = null
-
     init {
         viewModelScope.launch {
             combine(
@@ -107,9 +101,14 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
                 repository.settings,
                 repository.customPacks,
             ) { players, settings, packs -> Triple(players, settings, packs) }
-                .collect { (players, settings, packs) ->
-                    _state.value = _state.value.copy(
-                        players = players.ifEmpty { _state.value.players },
+                .collect { (storedPlayers, settings, packs) ->
+                    val current = _state.value
+                    // Scores are not persisted, so re-apply the ones this
+                    // session has earned rather than resetting mid-game.
+                    val sessionScores = current.players.associate { it.id to it.score }
+                    val merged = storedPlayers.map { it.copy(score = sessionScores[it.id] ?: 0) }
+                    _state.value = current.copy(
+                        players = merged.ifEmpty { current.players },
                         settings = settings,
                         customPacks = packs,
                     )
@@ -241,7 +240,6 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         when (val result = GameEngine.deal(current.players, current.settings, current.allPacks)) {
             is DealResult.Failure -> _state.value = current.copy(error = result.error)
             is DealResult.Success -> {
-                stopTimer()
                 _state.value = current.copy(
                     phase = GamePhase.REVEAL,
                     round = result.round,
@@ -251,8 +249,6 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
                     lastElimination = null,
                     outcome = null,
                     guessWasCorrect = null,
-                    secondsLeft = current.settings.discussionSeconds,
-                    timerRunning = false,
                     error = null,
                 )
             }
@@ -266,52 +262,13 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     fun nextReveal() {
         val current = _state.value
         if (current.isLastReveal) {
-            _state.value = current.copy(
-                phase = GamePhase.DISCUSSION,
-                secondsLeft = current.settings.discussionSeconds,
-                timerRunning = current.settings.discussionSeconds > 0,
-            )
-            if (current.settings.discussionSeconds > 0) startTimer()
+            _state.value = current.copy(phase = GamePhase.DISCUSSION)
         } else {
             _state.value = current.copy(revealIndex = current.revealIndex + 1)
         }
     }
 
-    // --- discussion timer ---------------------------------------------------
-
-    fun toggleTimer() {
-        if (_state.value.timerRunning) stopTimer() else startTimer()
-    }
-
-    fun resetTimer() {
-        stopTimer()
-        _state.value = _state.value.copy(secondsLeft = _state.value.settings.discussionSeconds)
-    }
-
-    private fun startTimer() {
-        if (_state.value.secondsLeft <= 0) return
-        timerJob?.cancel()
-        _state.value = _state.value.copy(timerRunning = true)
-        timerJob = viewModelScope.launch {
-            while (_state.value.secondsLeft > 0) {
-                delay(1_000)
-                val next = _state.value.secondsLeft - 1
-                _state.value = _state.value.copy(secondsLeft = next.coerceAtLeast(0))
-            }
-            _state.value = _state.value.copy(timerRunning = false)
-        }
-    }
-
-    private fun stopTimer() {
-        timerJob?.cancel()
-        timerJob = null
-        if (_state.value.timerRunning) {
-            _state.value = _state.value.copy(timerRunning = false)
-        }
-    }
-
     fun goToVote() {
-        stopTimer()
         _state.value = _state.value.copy(phase = GamePhase.VOTE)
     }
 
@@ -348,11 +305,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
             outcome != null -> finishRound(outcome)
 
-            else -> _state.value = current.copy(
-                phase = GamePhase.DISCUSSION,
-                secondsLeft = current.settings.discussionSeconds,
-                timerRunning = false,
-            )
+            else -> _state.value = current.copy(phase = GamePhase.DISCUSSION)
         }
     }
 
@@ -378,11 +331,9 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             outcome = outcome,
             players = scored,
         )
-        viewModelScope.launch { repository.savePlayers(scored) }
     }
 
     fun quitToMenu() {
-        stopTimer()
         _state.value = _state.value.copy(
             phase = GamePhase.IDLE,
             round = null,
@@ -391,12 +342,6 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             lastElimination = null,
             outcome = null,
             guessWasCorrect = null,
-            timerRunning = false,
         )
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        timerJob?.cancel()
     }
 }

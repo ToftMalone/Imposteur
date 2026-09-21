@@ -5,12 +5,16 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -44,7 +48,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
@@ -56,18 +59,29 @@ import com.toftmalone.imposteur.data.Role
 import com.toftmalone.imposteur.ui.components.AvatarArtwork
 import com.toftmalone.imposteur.ui.components.AvatarBadge
 import com.toftmalone.imposteur.ui.components.CircleIconButton
+import com.toftmalone.imposteur.ui.components.PrimaryButton
 import com.toftmalone.imposteur.ui.components.UiArt
 import com.toftmalone.imposteur.ui.components.UiIcon
-import com.toftmalone.imposteur.ui.components.PrimaryButton
 import com.toftmalone.imposteur.ui.theme.CivilBlue
 import com.toftmalone.imposteur.ui.theme.CivilCardGradient
 import com.toftmalone.imposteur.ui.theme.ImposteurCardGradient
 import com.toftmalone.imposteur.ui.theme.ImposteurRed
+import com.toftmalone.imposteur.ui.theme.Ink
+import com.toftmalone.imposteur.ui.theme.InkSurface
+import com.toftmalone.imposteur.ui.theme.TextPrimary
+import com.toftmalone.imposteur.ui.theme.TextSecondary
 import kotlinx.coroutines.launch
 
+/** How long the card takes to turn over. */
+private const val FLIP_MILLIS = 560
+
 /**
- * The pass-the-phone screen. Each player first confirms the phone reached them,
- * then sees their role, then drags the card up to uncover the secret word.
+ * The pass-the-phone screen.
+ *
+ * The background stays neutral for the whole screen: the player *handing the
+ * phone over* is still looking at it while "Passe le téléphone à X" shows, so
+ * anything role-coloured at that moment would tell them who the impostor is.
+ * The role only ever appears on the card, after it has turned over.
  */
 @Composable
 fun RevealScreen(
@@ -88,63 +102,90 @@ fun RevealScreen(
     val isImposter = assignment.role == Role.IMPOSTEUR
     val accent = if (isImposter) ImposteurRed else CivilBlue
 
-    Box(
+    // 0 = the neutral "pass it on" side, 1 = the role side.
+    val flip by animateFloatAsState(
+        targetValue = if (handedOver) 1f else 0f,
+        animationSpec = tween(durationMillis = FLIP_MILLIS, easing = FastOutSlowInEasing),
+        label = "card-flip",
+    )
+
+    Column(
         modifier = modifier
             .fillMaxSize()
-            .background(if (isImposter) ImposteurCardGradient else CivilCardGradient),
+            .background(Ink)
+            .statusBarsPadding()
+            .navigationBarsPadding()
+            .padding(horizontal = 20.dp, vertical = 12.dp),
     ) {
-        // A soft wash keeps the top bar readable over the bright card gradients.
-        Box(
-            Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        listOf(Color.Black.copy(alpha = 0.35f), Color.Transparent),
-                        endY = 400f,
-                    ),
-                ),
-        )
-
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .statusBarsPadding()
-                .navigationBarsPadding()
-                .padding(horizontal = 20.dp, vertical = 12.dp),
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                CircleIconButton(Icons.Rounded.Close, "Quitter la partie", onQuit)
-                Text(
-                    text = "$position / $total",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = Color.White.copy(alpha = 0.9f),
-                )
-                CircleIconButton(Icons.Rounded.HelpOutline, "Règles du jeu", onHelp)
-            }
+            CircleIconButton(
+                icon = Icons.Rounded.Close,
+                contentDescription = "Quitter la partie",
+                onClick = onQuit,
+                background = InkSurface,
+            )
+            Text(
+                text = "$position / $total",
+                style = MaterialTheme.typography.titleMedium,
+                color = TextSecondary,
+            )
+            CircleIconButton(
+                icon = Icons.Rounded.HelpOutline,
+                contentDescription = "Règles du jeu",
+                onClick = onHelp,
+                background = InkSurface,
+            )
+        }
 
-            Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(16.dp))
 
-            if (!handedOver) {
+        // The turning card. Both faces live in the same box so the flip reads as
+        // one physical object rather than a cross-fade.
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .graphicsLayer {
+                    rotationY = flip * 180f
+                    cameraDistance = 16f * density
+                },
+        ) {
+            if (flip < 0.5f) {
                 HandOverPanel(
                     player = player,
-                    modifier = Modifier.weight(1f),
                     onReady = { handedOver = true },
+                    modifier = Modifier.fillMaxSize(),
                 )
             } else {
-                SecretCard(
-                    player = player,
-                    assignment = assignment,
-                    revealed = revealed,
-                    onRevealed = { revealed = true },
-                    modifier = Modifier.weight(1f),
-                )
+                // Counter-rotated, otherwise the back face renders mirrored.
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer { rotationY = 180f },
+                ) {
+                    SecretCard(
+                        player = player,
+                        assignment = assignment,
+                        revealed = revealed,
+                        onRevealed = { revealed = true },
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
+            }
+        }
 
+        // Grows in under the card once it has turned, so nothing jumps.
+        AnimatedVisibility(
+            visible = handedOver,
+            enter = expandVertically(tween(FLIP_MILLIS / 2)) +
+                fadeIn(tween(durationMillis = 260, delayMillis = FLIP_MILLIS / 2)),
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Spacer(Modifier.height(18.dp))
-
                 Text(
                     text = if (isImposter) "Imposteur" else "Civil",
                     style = MaterialTheme.typography.displayMedium,
@@ -160,37 +201,57 @@ fun RevealScreen(
                         "Les civils ont le même mot.\nTrouve l'intrus !"
                     },
                     style = MaterialTheme.typography.bodyLarge,
-                    color = Color.White,
+                    color = TextSecondary,
                     modifier = Modifier.fillMaxWidth(),
                     textAlign = TextAlign.Center,
                 )
-
                 Spacer(Modifier.height(18.dp))
-
-                AnimatedVisibility(visible = revealed, enter = fadeIn(), exit = fadeOut()) {
-                    PrimaryButton(
-                        text = if (isLast) "Commencer la discussion" else "Passer au suivant",
-                        onClick = onNext,
-                    )
-                }
-                if (!revealed) Spacer(Modifier.height(62.dp))
             }
         }
+
+        AnimatedVisibility(
+            visible = revealed,
+            enter = fadeIn(tween(260)) + scaleIn(tween(260), initialScale = 0.9f),
+            exit = fadeOut(),
+        ) {
+            PrimaryButton(
+                text = if (isLast) "Commencer la discussion" else "Passer au suivant",
+                onClick = onNext,
+                containerColor = accent,
+                contentColor = Color.White,
+            )
+        }
+        if (!revealed) Spacer(Modifier.height(62.dp))
     }
 }
 
-/** "Give the phone to X" gate, so nobody sees a card meant for someone else. */
+/**
+ * "Give the phone to X" — deliberately neutral, so the player letting go of the
+ * phone learns nothing about the next player's role.
+ */
 @Composable
 private fun HandOverPanel(
     player: Player,
     onReady: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val pulse = rememberInfiniteTransition(label = "handover")
+    val breathe by pulse.animateFloat(
+        initialValue = 1f,
+        targetValue = 1.04f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1400, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse,
+        ),
+        label = "breathe",
+    )
+
     Column(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(28.dp))
-            .background(Color.Black.copy(alpha = 0.35f))
+            .background(InkSurface)
+            .border(1.dp, Color.White.copy(alpha = 0.06f), RoundedCornerShape(28.dp))
             .clickable(onClick = onReady)
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -199,29 +260,36 @@ private fun HandOverPanel(
         Text(
             text = "Passe le téléphone à",
             style = MaterialTheme.typography.titleLarge,
-            color = Color.White.copy(alpha = 0.85f),
+            color = TextSecondary,
+        )
+        Spacer(Modifier.height(18.dp))
+        AvatarBadge(
+            avatar = player.avatar,
+            size = 132,
+            modifier = Modifier.graphicsLayer {
+                scaleX = breathe
+                scaleY = breathe
+            },
         )
         Spacer(Modifier.height(14.dp))
-        AvatarBadge(avatar = player.avatar, size = 132)
-        Spacer(Modifier.height(10.dp))
         Text(
             text = player.name,
             style = MaterialTheme.typography.displayLarge,
-            color = Color.White,
+            color = TextPrimary,
             textAlign = TextAlign.Center,
         )
         Spacer(Modifier.height(26.dp))
         Text(
             text = "Appuie quand tu es prêt",
             style = MaterialTheme.typography.bodyLarge,
-            color = Color.White.copy(alpha = 0.8f),
+            color = TextSecondary,
         )
     }
 }
 
 /**
- * The avatar card sits on top of the secret. Dragging it upward past a third of
- * its height slides it away for good and uncovers the word.
+ * The role side. The portrait card sits on top of the secret; dragging it up
+ * past a third of its height slides it away for good.
  */
 @Composable
 private fun SecretCard(
@@ -240,10 +308,7 @@ private fun SecretCard(
     }
 
     Box(modifier = modifier.fillMaxWidth()) {
-        SecretContent(
-            assignment = assignment,
-            modifier = Modifier.fillMaxSize(),
-        )
+        SecretContent(assignment = assignment, modifier = Modifier.fillMaxSize())
 
         if (!revealed) {
             Box(
@@ -252,7 +317,11 @@ private fun SecretCard(
                     .graphicsLayer { translationY = offsetY.value }
                     .clip(RoundedCornerShape(24.dp))
                     .background(
-                        if (assignment.role == Role.IMPOSTEUR) ImposteurCardGradient else CivilCardGradient,
+                        if (assignment.role == Role.IMPOSTEUR) {
+                            ImposteurCardGradient
+                        } else {
+                            CivilCardGradient
+                        },
                     )
                     .pointerInput(player.id) {
                         cardHeight = size.height.toFloat()
@@ -281,13 +350,10 @@ private fun SecretCard(
                     },
                 contentAlignment = Alignment.Center,
             ) {
-                // No badge here: the card itself is the role colour, so the
-                // portrait floats straight on it.
                 AvatarArtwork(
                     avatar = player.avatar,
                     modifier = Modifier.fillMaxWidth(0.82f),
                 )
-
                 SwipeHint(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
@@ -298,7 +364,7 @@ private fun SecretCard(
     }
 }
 
-/** The bouncing arrow and caption from the cover card. */
+/** The bouncing arrow and caption on the cover card. */
 @Composable
 private fun SwipeHint(modifier: Modifier = Modifier) {
     val transition = rememberInfiniteTransition(label = "swipe-hint")
@@ -342,7 +408,7 @@ private fun SecretContent(
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(24.dp))
-            .background(Color.Black.copy(alpha = 0.42f))
+            .background(InkSurface)
             .padding(horizontal = 22.dp, vertical = 26.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
@@ -351,12 +417,12 @@ private fun SecretContent(
             Text(
                 text = "Thème",
                 style = MaterialTheme.typography.labelMedium,
-                color = Color.White.copy(alpha = 0.7f),
+                color = TextSecondary,
             )
             Text(
                 text = assignment.categoryHint,
                 style = MaterialTheme.typography.titleLarge,
-                color = Color.White,
+                color = TextPrimary,
                 textAlign = TextAlign.Center,
             )
             Spacer(Modifier.height(22.dp))
@@ -366,13 +432,13 @@ private fun SecretContent(
             Text(
                 text = "Ton mot",
                 style = MaterialTheme.typography.labelMedium,
-                color = Color.White.copy(alpha = 0.7f),
+                color = TextSecondary,
             )
             Spacer(Modifier.height(6.dp))
             Text(
                 text = assignment.word,
                 style = MaterialTheme.typography.displayLarge,
-                color = Color.White,
+                color = TextPrimary,
                 textAlign = TextAlign.Center,
             )
         } else {
@@ -381,14 +447,14 @@ private fun SecretContent(
             Text(
                 text = "Tu n'as pas de mot",
                 style = MaterialTheme.typography.headlineLarge,
-                color = Color.White,
+                color = TextPrimary,
                 textAlign = TextAlign.Center,
             )
             Spacer(Modifier.height(8.dp))
             Text(
                 text = "Écoute les autres et fais semblant de savoir.",
                 style = MaterialTheme.typography.bodyLarge,
-                color = Color.White.copy(alpha = 0.85f),
+                color = TextSecondary,
                 textAlign = TextAlign.Center,
             )
         }
@@ -398,12 +464,12 @@ private fun SecretContent(
             Text(
                 text = "Tes complices",
                 style = MaterialTheme.typography.labelMedium,
-                color = Color.White.copy(alpha = 0.7f),
+                color = TextSecondary,
             )
             Text(
                 text = assignment.fellowImposters.joinToString(" · "),
                 style = MaterialTheme.typography.titleLarge,
-                color = Color.White,
+                color = TextPrimary,
                 textAlign = TextAlign.Center,
             )
         }
@@ -412,7 +478,7 @@ private fun SecretContent(
         Text(
             text = "Retiens-le bien, puis passe le téléphone.",
             style = MaterialTheme.typography.bodyMedium,
-            color = Color.White.copy(alpha = 0.65f),
+            color = TextSecondary,
             textAlign = TextAlign.Center,
         )
     }

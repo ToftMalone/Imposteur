@@ -18,15 +18,15 @@ jusqu'au bout.
 | 🃏 **Révélation à la main** | On passe le téléphone, chacun découvre son rôle puis **glisse la carte vers le haut** pour voir son mot. |
 | 🎭 **3 modes d'imposteur** | *Mot différent* (un autre mot du même thème), *Thème seulement* (juste la catégorie), *Sans indice* (mode expert, l'imposteur ne sait rien). |
 | 👥 **Imposteurs multiples** | Jusqu'à la moitié de la table moins un, avec option « les imposteurs se connaissent ». |
-| 🎨 **Illustrations maison** | 16 portraits de joueurs, 20 icônes de packs et 7 icônes d'interface, dessinés en vectoriel (`VectorDrawable`) : nets à toute taille, ~180 Ko en tout, aucune dépendance aux emoji système. |
-| 🗂️ **20 packs de mots** | Animaux, Lieux, Métiers, Nourriture, Sports, Films & Séries, Marques, Transports, Objets, Musique, Jeux vidéo, Célébrités, École, Maison, Technologie, Fêtes, Corps, Vêtements, Histoire & Mythologie, Situations. **1 051 mots** au total. |
+| 🎨 **Illustrations maison** | 16 portraits de joueurs, 24 icônes de packs et 7 icônes d'interface, dessinés en vectoriel (`VectorDrawable`) : nets à toute taille, aucune dépendance aux emoji système. |
+| 🗂️ **24 packs de mots** | Animaux, Lieux, Métiers, Nourriture, Sports, Films & Séries, Marques, Transports, Objets, Musique, Jeux vidéo, Célébrités, École, Maison, Technologie, Fêtes, Corps, Vêtements, Histoire & Mythologie, Situations, Émotions, Villes & France, Fantastique, Météo. **3 316 mots** au total. |
 | ➕ **Packs personnalisés** | Créez vos propres thèmes (nom, icône, liste de mots), modifiables et supprimables. |
-| ⏱️ **Chronomètre** | Discussion minutée (désactivable, de 1 à 10 min) avec anneau de progression. |
+| 🃏 **Révélation sans fuite** | Fond neutre tant que le téléphone circule : la couleur du rôle n'apparaît qu'une fois la carte retournée, pour que le joueur précédent ne devine rien. |
 | 🗣️ **Ordre de parole** | Aléatoire ou dans l'ordre de la liste, affiché pendant la discussion. |
 | 🗳️ **Vote & élimination** | La table désigne un suspect, son rôle est révélé, la manche continue ou s'arrête. |
 | 🎯 **Dernière chance** | Un imposteur démasqué peut deviner le mot des civils pour voler la victoire (comparaison insensible à la casse, aux accents et à la ponctuation). |
-| 🏆 **Scores persistants** | Classement cumulé entre les manches, remise à zéro depuis les paramètres. |
-| 💾 **Tout est sauvegardé** | Joueurs, avatars, réglages et packs personnalisés survivent à la fermeture de l'app (DataStore). |
+| 🏆 **Scores de session** | Classement cumulé entre les manches, remis à zéro à chaque lancement de l'app. |
+| 💾 **Réglages sauvegardés** | Joueurs, avatars, options et packs personnalisés survivent à la fermeture de l'app (DataStore) — les scores, non. |
 
 ---
 
@@ -34,12 +34,12 @@ jusqu'au bout.
 
 ```
 Accueil ──┬─► Configuration ──► Partie ──► Révélation ──► Discussion ──► Vote
-          │        │                           ▲              │           │
-          │        └─► Packs ──► Éditeur       └──────────────┴──► Élimination
-          │                                                            │
-          ├─► Comment jouer                              Dernière chance ┤
-          └─► Paramètres                                                 │
-                                                          Fin de manche ◄┘
+          │     (joueurs,                     ▲              │           │
+          │      imposteurs,                  └──────────────┴──► Élimination
+          │      rôle, packs)                                          │
+          ├─► Packs ──► Éditeur                          Dernière chance ┤
+          ├─► Comment jouer                                             │
+          └─► Paramètres                                 Fin de manche ◄┘
 ```
 
 ---

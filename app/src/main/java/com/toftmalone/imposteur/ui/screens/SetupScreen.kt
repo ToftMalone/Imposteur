@@ -41,6 +41,9 @@ import com.toftmalone.imposteur.data.Player
 import com.toftmalone.imposteur.game.GameEngine
 import com.toftmalone.imposteur.game.GameError
 import com.toftmalone.imposteur.ui.components.AvatarBadge
+import androidx.compose.foundation.border
+import com.toftmalone.imposteur.data.ImposterMode
+import com.toftmalone.imposteur.ui.components.SectionTitle
 import com.toftmalone.imposteur.ui.components.CircleIconButton
 import com.toftmalone.imposteur.ui.components.PrimaryButton
 import com.toftmalone.imposteur.ui.components.StepperRow
@@ -64,6 +67,7 @@ fun SetupScreen(
     onRenamePlayer: (String, String) -> Unit,
     onCycleAvatar: (String) -> Unit,
     onImposterCountChange: (Int) -> Unit,
+    onImposterModeChange: (ImposterMode) -> Unit,
     onOpenPacks: () -> Unit,
     onOpenSettings: () -> Unit,
     onStart: () -> Unit,
@@ -124,6 +128,17 @@ fun SetupScreen(
                     onDecrement = { onImposterCountChange(settings.imposterCount - 1) },
                     onIncrement = { onImposterCountChange(settings.imposterCount + 1) },
                 )
+            }
+
+            item {
+                Spacer(Modifier.height(4.dp))
+                SectionTitle("Rôle de l'imposteur")
+                Spacer(Modifier.height(6.dp))
+                ImposterModePicker(
+                    selected = settings.imposterMode,
+                    onSelect = { onImposterModeChange(it) },
+                )
+                Spacer(Modifier.height(4.dp))
             }
 
             item {
@@ -289,4 +304,46 @@ private fun ErrorBanner(error: GameError) {
             .padding(14.dp),
         textAlign = TextAlign.Center,
     )
+}
+
+/**
+ * Picked right before a game rather than buried in settings: it changes how the
+ * round plays, so the table sees it while setting up.
+ */
+@Composable
+private fun ImposterModePicker(
+    selected: ImposterMode,
+    onSelect: (ImposterMode) -> Unit,
+) {
+    val entries = listOf(
+        Triple(ImposterMode.DIFFERENT_WORD, "Mot différent", "L'imposteur reçoit un autre mot du même thème."),
+        Triple(ImposterMode.CATEGORY_HINT, "Thème seulement", "L'imposteur ne connaît que la catégorie."),
+        Triple(ImposterMode.NO_WORD, "Sans indice", "L'imposteur ne sait rien du tout. Mode expert."),
+    )
+
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        entries.forEach { (mode, title, description) ->
+            val isSelected = mode == selected
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(if (isSelected) BrandOrange.copy(alpha = 0.16f) else InkSurface)
+                    .border(
+                        width = if (isSelected) 2.dp else 1.dp,
+                        color = if (isSelected) BrandOrange else Color.White.copy(alpha = 0.06f),
+                        shape = RoundedCornerShape(20.dp),
+                    )
+                    .clickable { onSelect(mode) }
+                    .padding(horizontal = 18.dp, vertical = 14.dp),
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = if (isSelected) BrandOrange else TextPrimary,
+                )
+                Text(description, style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
+            }
+        }
+    }
 }

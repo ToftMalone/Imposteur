@@ -12,6 +12,7 @@ object PackIcons {
         "lion", "globe", "helmet", "burger", "ball", "clapper", "tag", "car",
         "tools", "note", "gamepad", "star", "backpack", "house", "laptop",
         "party", "heart", "shirt", "temple", "theatre",
+        "face", "eiffel", "wizard", "weather",
     )
 
     /** Used for a custom pack that has not picked an icon, or an unknown key. */

@@ -33,6 +33,10 @@ private val PACK_ICON_DRAWABLES: Map<String, Int> = mapOf(
     "shirt" to R.drawable.pack_shirt,
     "temple" to R.drawable.pack_temple,
     "theatre" to R.drawable.pack_theatre,
+    "face" to R.drawable.pack_face,
+    "eiffel" to R.drawable.pack_eiffel,
+    "wizard" to R.drawable.pack_wizard,
+    "weather" to R.drawable.pack_weather,
 )
 
 /** Falls back to the default artwork so an unknown key never breaks a screen. */

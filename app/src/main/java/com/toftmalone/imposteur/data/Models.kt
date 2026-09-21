@@ -1,6 +1,7 @@
 package com.toftmalone.imposteur.data
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 /** A person sitting around the table. Identity is stable across rounds so scores can accumulate. */
 @Serializable
@@ -8,7 +9,11 @@ data class Player(
     val id: String,
     val name: String,
     val avatar: Int,
-    val score: Int = 0,
+    /**
+     * Points for the current session only. Marked transient so a fresh launch
+     * always starts everyone back at zero.
+     */
+    @Transient val score: Int = 0,
 )
 
 /** What a player secretly is during a round. */
@@ -45,7 +50,6 @@ data class WordPack(
 data class GameSettings(
     val imposterCount: Int = 1,
     val imposterMode: ImposterMode = ImposterMode.DIFFERENT_WORD,
-    val discussionSeconds: Int = 180,
     val showCategoryToEveryone: Boolean = true,
     val impostersKnowEachOther: Boolean = false,
     val randomSpeakingOrder: Boolean = true,
@@ -55,9 +59,6 @@ data class GameSettings(
 ) {
     companion object {
         val DEFAULT_SELECTED_PACKS = setOf("animaux", "lieux", "metiers", "nourriture")
-
-        /** Timer choices offered in the setup screen; 0 means "no timer". */
-        val TIMER_CHOICES = listOf(0, 60, 120, 180, 300, 420, 600)
     }
 }
 
