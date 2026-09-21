@@ -60,7 +60,7 @@ fun PacksScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val selectedWords = packs.filter { it.id in selectedIds }.sumOf { it.words.size }
+    val selectedPairs = packs.filter { it.id in selectedIds }.sumOf { it.pairs.size }
 
     Column(
         modifier = modifier
@@ -89,7 +89,7 @@ fun PacksScreen(
         )
         Spacer(Modifier.height(4.dp))
         Text(
-            text = "${selectedIds.size} sélectionné${if (selectedIds.size > 1) "s" else ""} · $selectedWords mots",
+            text = "${selectedIds.size} sélectionné${if (selectedIds.size > 1) "s" else ""} · $selectedPairs paires",
             style = MaterialTheme.typography.bodyMedium,
             color = TextSecondary,
             modifier = Modifier.fillMaxWidth(),
@@ -181,7 +181,7 @@ private fun PackTile(
             )
             Spacer(Modifier.height(4.dp))
             Text(
-                text = "${pack.words.size} mots",
+                text = "${pack.pairs.size} paires",
                 style = MaterialTheme.typography.bodyMedium,
                 color = TextSecondary,
             )

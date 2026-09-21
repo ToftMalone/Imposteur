@@ -31,18 +31,35 @@ enum class ImposterMode {
     CATEGORY_HINT,
 }
 
-/** A themed list of words. Built-in packs ship with the app; custom ones are user made. */
+/**
+ * Two words close enough that describing one sounds a lot like describing the
+ * other: "Pizza" and "Quiche", "Lion" and "Tigre". Neither side is fixed as the
+ * civilians' word -- the deal picks a direction each round.
+ */
+@Serializable
+data class WordPair(
+    val first: String,
+    val second: String,
+) {
+    val isComplete: Boolean
+        get() = first.isNotBlank() && second.isNotBlank() && !first.equals(second, ignoreCase = true)
+}
+
+/** A themed list of word pairs. Built-in packs ship with the app; custom ones are user made. */
 @Serializable
 data class WordPack(
     val id: String,
     val name: String,
     /** A [PackIcons] key naming the artwork to draw for this pack. */
     val icon: String = PackIcons.DEFAULT,
-    val words: List<String>,
+    val pairs: List<WordPair> = emptyList(),
     val isCustom: Boolean = false,
 ) {
-    /** A pack needs two distinct words so impostors can receive a different one. */
-    val isPlayable: Boolean get() = words.size >= 2
+    /** A pack needs at least one usable pair to be dealt from. */
+    val isPlayable: Boolean get() = pairs.any { it.isComplete }
+
+    /** How many words the pack contributes, counting both sides of every pair. */
+    val wordCount: Int get() = pairs.size * 2
 }
 
 /** Everything the player can tune before starting a game. Persisted between sessions. */

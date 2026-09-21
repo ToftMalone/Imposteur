@@ -75,9 +75,13 @@ object GameEngine {
             .filter { it.id in settings.selectedPackIds && it.isPlayable }
             .random(random)
 
-        val words = pack.words.shuffled(random)
-        val civilWord = words[0]
-        val imposterWord = words[1]
+        // Impostors get the partner of the civilians' word, not a random other
+        // word from the pack, so their clue sounds believable.
+        val pair = pack.pairs.filter { it.isComplete }.random(random)
+        // Neither side of a pair is fixed, so the same pair plays both ways.
+        val civilFirst = random.nextBoolean()
+        val civilWord = if (civilFirst) pair.first else pair.second
+        val imposterWord = if (civilFirst) pair.second else pair.first
 
         val imposterIds = players.map { it.id }.shuffled(random).take(settings.imposterCount).toSet()
         val imposterNames = players.filter { it.id in imposterIds }.map { it.name }

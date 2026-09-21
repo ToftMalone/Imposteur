@@ -20,7 +20,7 @@ class WordPacksTest {
     fun `every pack is playable and reasonably large`() {
         WordPacks.BUILT_IN.forEach { pack ->
             assertTrue(pack.isPlayable, "${pack.id} needs at least two words")
-            assertTrue(pack.words.size >= 100, "${pack.id} only has ${pack.words.size} words")
+            assertTrue(pack.pairs.size >= 70, "${pack.id} only has ${pack.pairs.size} pairs")
             assertTrue(PackIcons.isKnown(pack.icon), "${pack.id} has an unknown icon: ${pack.icon}")
             assertTrue(pack.name.isNotBlank(), "${pack.id} has no name")
         }
@@ -28,14 +28,15 @@ class WordPacksTest {
 
     @Test
     fun `the built-in library is large enough for long sessions`() {
-        val total = WordPacks.BUILT_IN.sumOf { it.words.size }
-        assertTrue(total >= 3000, "only $total words across ${WordPacks.BUILT_IN.size} packs")
+        val total = WordPacks.BUILT_IN.sumOf { it.pairs.size }
+        assertTrue(total >= 2000, "only $total pairs across ${WordPacks.BUILT_IN.size} packs")
     }
 
     @Test
     fun `no pack repeats a word`() {
         WordPacks.BUILT_IN.forEach { pack ->
-            val duplicates = pack.words.groupBy { it.lowercase() }.filter { it.value.size > 1 }.keys
+            val words = pack.pairs.flatMap { listOf(it.first, it.second) }
+            val duplicates = words.groupBy { it.lowercase() }.filter { it.value.size > 1 }.keys
             assertTrue(duplicates.isEmpty(), "${pack.id} repeats $duplicates")
         }
     }
@@ -43,7 +44,7 @@ class WordPacksTest {
     @Test
     fun `no word is blank or padded`() {
         WordPacks.BUILT_IN.forEach { pack ->
-            pack.words.forEach { word ->
+            pack.pairs.flatMap { listOf(it.first, it.second) }.forEach { word ->
                 assertTrue(word.isNotBlank(), "${pack.id} has a blank word")
                 assertEquals(word.trim(), word, "${pack.id} has padding around '$word'")
             }
@@ -62,6 +63,18 @@ class WordPacksTest {
             WordPacks.BUILT_IN.size, used.size,
             "each built-in pack should have its own icon, got $used",
         )
+    }
+
+    @Test
+    fun `every pair is usable and genuinely a pair`() {
+        WordPacks.BUILT_IN.forEach { pack ->
+            pack.pairs.forEach { pair ->
+                assertTrue(
+                    pair.isComplete,
+                    "${pack.id} has an unusable pair: '${pair.first}' / '${pair.second}'",
+                )
+            }
+        }
     }
 
     @Test

@@ -16,11 +16,12 @@ jusqu'au bout.
 | | |
 |---|---|
 | 🃏 **Révélation à la main** | On passe le téléphone, chacun découvre son rôle puis **glisse la carte vers le haut** pour voir son mot. |
-| 🎭 **3 modes d'imposteur** | *Mot différent* (un autre mot du même thème), *Thème seulement* (juste la catégorie), *Sans indice* (mode expert, l'imposteur ne sait rien). |
+| 🎯 **Mots vraiment proches** | Le contenu est écrit par **paires** : *Pizza / Quiche*, *Dauphin / Baleine*, *Oslo / Stockholm*, *Psychiatre / Psychologue*. L'imposteur reçoit le partenaire du mot des civils, jamais un mot pris au hasard — son indice sonne juste et il faut vraiment écouter. |
+| 🎭 **3 modes d'imposteur** | *Mot proche* (le partenaire de la paire), *Thème seulement* (juste la catégorie), *Sans indice* (mode expert, l'imposteur ne sait rien). |
 | 👥 **Imposteurs multiples** | Jusqu'à la moitié de la table moins un, avec option « les imposteurs se connaissent ». |
 | 🎨 **Illustrations maison** | 16 portraits de joueurs, 24 icônes de packs et 7 icônes d'interface, dessinés en vectoriel (`VectorDrawable`) : nets à toute taille, aucune dépendance aux emoji système. |
-| 🗂️ **24 packs de mots** | Animaux, Lieux, Métiers, Nourriture, Sports, Films & Séries, Marques, Transports, Objets, Musique, Jeux vidéo, Célébrités, École, Maison, Technologie, Fêtes, Corps, Vêtements, Histoire & Mythologie, Situations, Émotions, Villes & France, Fantastique, Météo. **3 316 mots** au total. |
-| ➕ **Packs personnalisés** | Créez vos propres thèmes (nom, icône, liste de mots), modifiables et supprimables. |
+| 🗂️ **24 packs de mots** | Animaux, Lieux, Métiers, Nourriture, Sports, Films & Séries, Marques, Transports, Objets, Musique, Jeux vidéo, Célébrités, École, Maison, Technologie, Fêtes, Corps, Vêtements, Histoire & Mythologie, Situations, Émotions, Villes & France, Fantastique, Météo. **2 177 paires**, soit 4 354 mots. |
+| ➕ **Packs personnalisés** | Créez vos propres thèmes (nom, icône, paires de mots), modifiables et supprimables. |
 | 🃏 **Révélation sans fuite** | Fond neutre tant que le téléphone circule : la couleur du rôle n'apparaît qu'une fois la carte retournée, pour que le joueur précédent ne devine rien. |
 | 🗣️ **Ordre de parole** | Aléatoire ou dans l'ordre de la liste, affiché pendant la discussion. |
 | 🗳️ **Vote & élimination** | La table désigne un suspect, son rôle est révélé, la manche continue ou s'arrête. |
@@ -50,8 +51,8 @@ Accueil ──┬─► Configuration ──► Partie ──► Révélation �
 app/src/main/java/com/toftmalone/imposteur/
 ├── MainActivity.kt              # activité unique, Compose
 ├── data/
-│   ├── Models.kt                # Player, WordPack, GameSettings, Round, Assignment…
-│   ├── WordPacks.kt             # les 20 packs intégrés
+│   ├── Models.kt                # Player, WordPair, WordPack, GameSettings, Round…
+│   ├── WordPacks.kt             # les 24 packs intégrés
 │   ├── Avatars.kt               # avatars emoji + prénoms par défaut
 │   └── ImposteurRepository.kt   # persistance DataStore + kotlinx.serialization
 ├── game/
@@ -102,13 +103,16 @@ Le plus simple est d'ouvrir le dossier dans Android Studio (Ladybug ou plus réc
 `app/src/test/java/` couvre le moteur de jeu et le contenu :
 
 - distribution des rôles (nombre d'imposteurs, mots des civils vs imposteurs) ;
+- le mot de l'imposteur est **toujours** le partenaire de celui des civils, et
+  les deux sens d'une paire sortent au fil des parties ;
 - les trois modes d'imposteur, dont la garantie que le mode *Sans indice* ne
   laisse fuiter **ni mot ni thème** ;
 - validation (trop peu de joueurs, imposteurs majoritaires, aucun pack) ;
 - conditions de victoire et poursuite de la manche après un vote ;
 - normalisation de la réponse de l'imposteur (casse, accents, ponctuation) ;
 - attribution et cumul des points ;
-- intégrité des packs (identifiants uniques, pas de doublon, pas de mot vide).
+- intégrité des packs (identifiants uniques, pas de doublon, pas de mot vide,
+  chaque paire formée de deux mots distincts et non vides).
 
 ```bash
 ./gradlew testDebugUnitTest
@@ -124,7 +128,8 @@ comme un échec.
 
 ## ⚖️ Règles du jeu
 
-1. Chaque joueur découvre son rôle et son mot en privé.
+1. Chaque joueur découvre son rôle et son mot en privé. Les imposteurs
+   reçoivent un mot **très proche** de celui des civils.
 2. À tour de rôle, chacun donne **un seul indice** sur son mot.
 3. La table débat puis vote pour éliminer un suspect ; son rôle est révélé.
 4. Les **civils** gagnent quand tous les imposteurs sont éliminés

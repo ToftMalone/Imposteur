@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -27,6 +28,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.DeleteOutline
+import androidx.compose.material.icons.rounded.SwapHoriz
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -47,10 +49,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.toftmalone.imposteur.data.PackIcons
 import com.toftmalone.imposteur.data.WordPack
+import com.toftmalone.imposteur.data.WordPair
 import com.toftmalone.imposteur.ui.components.CircleIconButton
 import com.toftmalone.imposteur.ui.components.PackIcon
 import com.toftmalone.imposteur.ui.components.PrimaryButton
 import com.toftmalone.imposteur.ui.theme.BrandOrange
+import com.toftmalone.imposteur.ui.theme.CivilBlue
 import com.toftmalone.imposteur.ui.theme.ImposteurRed
 import com.toftmalone.imposteur.ui.theme.Ink
 import com.toftmalone.imposteur.ui.theme.InkSurface
@@ -59,8 +63,11 @@ import com.toftmalone.imposteur.ui.theme.TextPrimary
 import com.toftmalone.imposteur.ui.theme.TextSecondary
 
 /**
- * Create or edit a custom pack. A pack needs a name and at least two words
- * before it can be saved, since impostors draw a second word from the same list.
+ * Create or edit a custom pack.
+ *
+ * Words are entered in pairs, because that is what makes the game work: the
+ * impostor gets the partner of the civilians' word, so the two need to be close
+ * enough that one clue could plausibly describe either.
  */
 @Composable
 fun PackEditorScreen(
@@ -73,17 +80,23 @@ fun PackEditorScreen(
 ) {
     var name by remember(existing?.id) { mutableStateOf(existing?.name.orEmpty()) }
     var icon by remember(existing?.id) { mutableStateOf(existing?.icon ?: PackIcons.DEFAULT) }
-    val words = remember(existing?.id) { existing?.words.orEmpty().toMutableStateList() }
-    var draft by remember(existing?.id) { mutableStateOf("") }
+    val pairs = remember(existing?.id) { existing?.pairs.orEmpty().toMutableStateList() }
+    var draftCivil by remember(existing?.id) { mutableStateOf("") }
+    var draftImposter by remember(existing?.id) { mutableStateOf("") }
 
-    val canSave = name.isNotBlank() && words.size >= 2
+    val canSave = name.isNotBlank() && pairs.any { it.isComplete }
 
     fun addDraft() {
-        val trimmed = draft.trim()
-        if (trimmed.isNotEmpty() && words.none { it.equals(trimmed, ignoreCase = true) }) {
-            words.add(0, trimmed)
+        val a = draftCivil.trim()
+        val b = draftImposter.trim()
+        val alreadyUsed = pairs.any { p ->
+            listOf(p.first, p.second).any { it.equals(a, true) || it.equals(b, true) }
         }
-        draft = ""
+        if (a.isNotEmpty() && b.isNotEmpty() && !a.equals(b, true) && !alreadyUsed) {
+            pairs.add(0, WordPair(a, b))
+            draftCivil = ""
+            draftImposter = ""
+        }
     }
 
     Column(
@@ -160,19 +173,34 @@ fun PackEditorScreen(
 
             item {
                 Text(
-                    text = "Mots (${words.size})",
+                    text = "Paires (${pairs.size})",
                     style = MaterialTheme.typography.labelMedium,
-                    color = if (words.size >= 2) TextSecondary else ImposteurRed,
+                    color = if (pairs.any { it.isComplete }) TextSecondary else ImposteurRed,
+                )
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = "Deux mots proches : les civils reçoivent l'un, l'imposteur l'autre.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = TextSecondary,
+                )
+                Spacer(Modifier.height(10.dp))
+                EditorField(
+                    value = draftCivil,
+                    onValueChange = { draftCivil = it.take(28) },
+                    placeholder = "Premier mot — ex. Pizza",
+                    imeAction = ImeAction.Next,
+                    accent = CivilBlue,
                 )
                 Spacer(Modifier.height(8.dp))
                 EditorField(
-                    value = draft,
-                    onValueChange = { draft = it.take(28) },
-                    placeholder = "Ajouter un mot puis Entrée",
+                    value = draftImposter,
+                    onValueChange = { draftImposter = it.take(28) },
+                    placeholder = "Mot proche — ex. Quiche",
                     imeAction = ImeAction.Done,
                     onImeAction = ::addDraft,
+                    accent = ImposteurRed,
                     trailing = {
-                        if (draft.isNotBlank()) {
+                        if (draftCivil.isNotBlank() && draftImposter.isNotBlank()) {
                             Text(
                                 text = "Ajouter",
                                 style = MaterialTheme.typography.labelMedium,
@@ -186,47 +214,24 @@ fun PackEditorScreen(
                 )
             }
 
-            itemsIndexed(words, key = { _, word -> word }) { _, word ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(InkSurface)
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = word,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = TextPrimary,
-                        modifier = Modifier.weight(1f),
-                    )
-                    Box(
-                        modifier = Modifier
-                            .size(30.dp)
-                            .clip(CircleShape)
-                            .background(Color.White.copy(alpha = 0.06f))
-                            .clickable { words.remove(word) },
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Icon(
-                            Icons.Rounded.Close,
-                            contentDescription = "Supprimer $word",
-                            tint = TextSecondary,
-                            modifier = Modifier.size(16.dp),
-                        )
-                    }
-                }
+            itemsIndexed(pairs, key = { _, pair -> pair.first + "|" + pair.second }) { index, pair ->
+                PairRow(
+                    pair = pair,
+                    onSwap = { pairs[index] = WordPair(pair.second, pair.first) },
+                    onRemove = { pairs.remove(pair) },
+                )
             }
 
-            if (words.size < 2) {
+            if (!pairs.any { it.isComplete }) {
                 item {
                     Text(
-                        text = "Ajoute au moins 2 mots : l'imposteur reçoit un autre mot du même pack.",
+                        text = "Ajoute au moins une paire pour pouvoir jouer ce pack.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = TextSecondary,
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth().padding(8.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp),
                     )
                 }
             }
@@ -241,7 +246,7 @@ fun PackEditorScreen(
                         id = existing?.id ?: newPackId,
                         name = name.trim(),
                         icon = icon,
-                        words = words.toList(),
+                        pairs = pairs.filter { it.isComplete },
                         isCustom = true,
                     ),
                 )
@@ -254,12 +259,76 @@ fun PackEditorScreen(
 }
 
 @Composable
+private fun PairRow(
+    pair: WordPair,
+    onSwap: () -> Unit,
+    onRemove: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(InkSurface)
+            .padding(horizontal = 14.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = pair.first,
+            style = MaterialTheme.typography.titleMedium,
+            color = TextPrimary,
+            maxLines = 1,
+            modifier = Modifier.weight(1f),
+        )
+        Box(
+            modifier = Modifier
+                .width(34.dp)
+                .clip(CircleShape)
+                .clickable(onClick = onSwap)
+                .padding(vertical = 6.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                Icons.Rounded.SwapHoriz,
+                contentDescription = "Inverser les deux mots",
+                tint = TextSecondary,
+                modifier = Modifier.size(20.dp),
+            )
+        }
+        Text(
+            text = pair.second,
+            style = MaterialTheme.typography.titleMedium,
+            color = TextSecondary,
+            maxLines = 1,
+            textAlign = TextAlign.End,
+            modifier = Modifier.weight(1f),
+        )
+        Box(
+            modifier = Modifier
+                .padding(start = 10.dp)
+                .size(30.dp)
+                .clip(CircleShape)
+                .background(Color.White.copy(alpha = 0.06f))
+                .clickable(onClick = onRemove),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                Icons.Rounded.Close,
+                contentDescription = "Supprimer la paire",
+                tint = TextSecondary,
+                modifier = Modifier.size(16.dp),
+            )
+        }
+    }
+}
+
+@Composable
 private fun EditorField(
     value: String,
     onValueChange: (String) -> Unit,
     placeholder: String,
     imeAction: ImeAction,
     onImeAction: () -> Unit = {},
+    accent: Color = BrandOrange,
     trailing: @Composable (() -> Unit)? = null,
 ) {
     OutlinedTextField(
@@ -279,11 +348,11 @@ private fun EditorField(
         colors = OutlinedTextFieldDefaults.colors(
             focusedContainerColor = InkSurface,
             unfocusedContainerColor = InkSurface,
-            focusedBorderColor = BrandOrange,
+            focusedBorderColor = accent,
             unfocusedBorderColor = Color.White.copy(alpha = 0.1f),
             focusedTextColor = TextPrimary,
             unfocusedTextColor = TextPrimary,
-            cursorColor = BrandOrange,
+            cursorColor = accent,
         ),
     )
 }

@@ -62,6 +62,33 @@ class GameEngineTest {
     }
 
     @Test
+    fun `the impostor's word is always the partner of the civilians' word`() {
+        // The whole point of the pairs: the impostor must never get an unrelated
+        // word from elsewhere in the pack.
+        repeat(200) { seed ->
+            val round = dealOrFail(roster(5), settings(), seed = seed)
+            val pack = WordPacks.findById(round.packId)!!
+            val dealt = setOf(round.civilWord, round.imposterWord)
+            val match = pack.pairs.any { setOf(it.first, it.second) == dealt }
+            assertTrue(match, "seed $seed dealt ${round.civilWord} / ${round.imposterWord}")
+        }
+    }
+
+    @Test
+    fun `either side of a pair can fall to the civilians`() {
+        val firstSideSeen = mutableSetOf<Boolean>()
+        repeat(200) { seed ->
+            val round = dealOrFail(roster(5), settings(), seed = seed)
+            val pack = WordPacks.findById(round.packId)!!
+            val pair = pack.pairs.first {
+                setOf(it.first, it.second) == setOf(round.civilWord, round.imposterWord)
+            }
+            firstSideSeen += (pair.first == round.civilWord)
+        }
+        assertEquals(setOf(true, false), firstSideSeen, "pairs should be dealt both ways")
+    }
+
+    @Test
     fun `no-word mode leaves the impostor with nothing at all`() {
         val round = dealOrFail(roster(5), settings(mode = ImposterMode.NO_WORD, showCategory = true))
         val impostor = round.assignments.first { it.role == Role.IMPOSTEUR }

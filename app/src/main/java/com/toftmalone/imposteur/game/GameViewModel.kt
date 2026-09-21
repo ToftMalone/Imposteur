@@ -63,7 +63,7 @@ data class GameUiState(
         get() = allPacks.count { it.id in settings.selectedPackIds }
 
     val selectedWordCount: Int
-        get() = allPacks.filter { it.id in settings.selectedPackIds }.sumOf { it.words.size }
+        get() = allPacks.filter { it.id in settings.selectedPackIds }.sumOf { it.wordCount }
 
     val canStart: Boolean
         get() = GameEngine.validate(players, settings, allPacks) == null
