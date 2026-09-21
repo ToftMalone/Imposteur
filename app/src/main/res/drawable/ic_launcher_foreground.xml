@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Fedora crown -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M36,48 C36,35 42,27 54,27 C66,27 72,35 72,48 L72,51 L36,51 Z" />
+    <!-- Hat band -->
+    <path
+        android:fillColor="#FF1B1B23"
+        android:pathData="M35,45 L73,45 L73,52 L35,52 Z" />
+    <!-- Hat brim -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M54,44 C74,44 88,48 88,53 C88,58 74,62 54,62 C34,62 20,58 20,53 C20,48 34,44 54,44 Z" />
+    <!-- Sunglasses bridge -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M49,70 L59,70 L59,75 L49,75 Z" />
+    <!-- Left lens -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M27,67 L51,67 L51,76 C51,81 47,84 41,84 C33,84 28,79 27,72 Z" />
+    <!-- Right lens -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M57,67 L81,67 L81,72 C80,79 75,84 67,84 C61,84 57,81 57,76 Z" />
+</vector>
