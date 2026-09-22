@@ -1,34 +1,21 @@
-# Imposteur 0.1.1
+# Imposteur 0.1.2
 
-Deux ajouts par rapport à la 0.1.
+Refonte du logo de l'écran d'accueil.
 
-## 🔔 Détection des mises à jour
+## 🎭 Nouveau logo
 
-Au lancement, l'app demande à GitHub s'il existe une release plus récente. Si
-oui, une bandeau discret apparaît sur l'écran d'accueil et ouvre la page de
-téléchargement d'un appui. La vérification est aussi déclenchable à la main
-depuis les paramètres.
+Le détective en médaillon laisse place à un personnage qui **tient un masque de
+théâtre**, dessiné pour l'occasion dans le style vectoriel du reste de l'app.
 
-Si le téléphone est hors-ligne, ou si la vérification échoue, l'app ne dit
-rien et se lance normalement.
+Le fond circulaire disparaît : le personnage se détache directement sur le
+dégradé et **déborde sur le mot « IMPOSTEUR »**, dont il a l'air de sortir.
 
-## ℹ️ Bloc « Infos de l'app »
-
-Nouvelle section dans les paramètres : version installée, nombre de joueurs
-possibles, nombre de packs et de paires de mots, rappel que rien ne quitte
-l'appareil — et le crédit : **développé par ToftMalone**.
-
-## 🔐 Ce qui change côté permissions
-
-L'app demande désormais `INTERNET`, uniquement pour interroger l'API des
-releases de GitHub. Aucune donnée de jeu n'est envoyée nulle part : la requête
-ne transmet rien d'autre que la demande « quelle est la dernière version ? ».
+Comme toutes les illustrations de l'app, c'est un `VectorDrawable` : net à
+n'importe quelle taille d'écran, 4,6 Ko.
 
 ## 📲 Installation
 
-1. Télécharge `Imposteur-0.1.1.apk` ci-dessous.
-2. Ouvre le fichier sur ton téléphone Android.
-3. Autorise l'installation depuis cette source si Android le demande.
+Télécharge `Imposteur-0.1.2.apk` ci-dessous et ouvre-le sur ton téléphone.
+S'installe par-dessus la 0.1.1 sans rien perdre.
 
-Android 7.0 (API 24) minimum. S'installe par-dessus la 0.1 sans perdre les
-joueurs ni les réglages.
+Android 7.0 (API 24) minimum.
