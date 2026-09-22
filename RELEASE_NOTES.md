@@ -1,12 +1,12 @@
-# Imposteur 1.0.0
+# Imposteur 0.1
 
-Premier build public. Jeu de soirée hors-ligne, un seul téléphone que l'on se
+Première version jouable. Jeu de soirée hors-ligne, un seul téléphone que l'on se
 passe autour de la table : tout le monde reçoit le même mot secret… sauf les
 imposteurs, qui en reçoivent un **très proche**.
 
 ## 📲 Installation
 
-1. Télécharge `Imposteur-1.0.0.apk` ci-dessous.
+1. Télécharge `Imposteur-0.1.apk` ci-dessous.
 2. Ouvre le fichier sur ton téléphone Android.
 3. Android demandera d'autoriser l'installation depuis cette source — c'est
    normal pour une app qui ne vient pas du Play Store.
