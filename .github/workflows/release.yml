@@ -91,6 +91,17 @@ jobs:
         if: always()
         run: rm -f imposteur-release.keystore
 
+      # Aussi disponible depuis la page de l'exécution, pas seulement sur la
+      # release: c'est là qu'on regarde spontanément après un build.
+      - name: Upload the APK as a run artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: imposteur-release-apk
+          path: |
+            ${{ env.APK_PATH }}
+            checksum.txt
+          if-no-files-found: error
+
       - name: Publish the GitHub release
         uses: softprops/action-gh-release@v2
         with:
