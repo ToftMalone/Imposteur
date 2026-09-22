@@ -65,6 +65,11 @@ jobs:
       - name: Assemble debug APK
         run: ./gradlew assembleDebug --console=plain --stacktrace
 
+      # Builds the release variant through R8 (minify + resource shrinking) with
+      # no signing key, so shrinking mistakes surface here rather than at release.
+      - name: Assemble release (unsigned, R8 check)
+        run: ./gradlew assembleRelease --console=plain --stacktrace
+
       - name: Upload APK
         if: success()
         uses: actions/upload-artifact@v4
