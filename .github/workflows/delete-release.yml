@@ -1,0 +1,54 @@
+name: Delete a release
+
+# Suppression manuelle d'une release publiee par erreur. Volontairement
+# protegee par une confirmation litterale: rien ne doit pouvoir partir d'un
+# clic distrait.
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag de la release a supprimer (ex. v0.1.2)"
+        required: true
+      confirm:
+        description: "Taper SUPPRIMER pour confirmer"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  delete:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Vérifier la confirmation
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event.inputs.confirm }}" != "SUPPRIMER" ]; then
+            echo "::error::Confirmation absente ou incorrecte — rien n'a été supprimé."
+            exit 1
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Supprimer la release et son tag
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.event.inputs.tag }}
+        run: |
+          set -euo pipefail
+          echo "Cible : $TAG"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release delete "$TAG" --yes --cleanup-tag
+            echo "Release et tag supprimés."
+          else
+            echo "Aucune release pour $TAG ; tentative de suppression du tag seul."
+            git push origin ":refs/tags/$TAG" || echo "Tag déjà absent."
+          fi
+
+      - name: État après suppression
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Releases restantes :"
+          gh release list || true
