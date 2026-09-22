@@ -96,7 +96,7 @@ jobs:
         with:
           tag_name: ${{ github.event.inputs.tag || github.ref_name }}
           target_commitish: ${{ github.sha }}
-          name: Imposteur ${{ github.event.inputs.tag || github.ref_name }} — bêta
+          name: Imposteur ${{ github.event.inputs.tag || github.ref_name }}
           body_path: RELEASE_NOTES.md
           files: |
             ${{ env.APK_PATH }}
