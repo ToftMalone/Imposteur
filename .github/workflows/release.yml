@@ -91,10 +91,11 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.event.inputs.tag || github.ref_name }}
-          name: Imposteur ${{ github.event.inputs.tag || github.ref_name }}
+          name: Imposteur ${{ github.event.inputs.tag || github.ref_name }} — bêta
           body_path: RELEASE_NOTES.md
           files: |
             ${{ env.APK_PATH }}
             checksum.txt
           draft: false
-          prerelease: false
+          # Marquée pre-release: c'est une bêta, pas une version stable.
+          prerelease: true

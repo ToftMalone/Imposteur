@@ -1,8 +1,12 @@
-# Imposteur 0.1
+# Imposteur 0.1 — première bêta 🎉
 
-Première version jouable. Jeu de soirée hors-ligne, un seul téléphone que l'on se
-passe autour de la table : tout le monde reçoit le même mot secret… sauf les
-imposteurs, qui en reçoivent un **très proche**.
+**Lancement de la première version bêta !** Jeu de soirée hors-ligne, un seul
+téléphone que l'on se passe autour de la table : tout le monde reçoit le même
+mot secret… sauf les imposteurs, qui en reçoivent un **très proche**.
+
+C'est une bêta : l'app est complète et jouable de bout en bout, mais c'est sa
+première sortie sur de vrais téléphones. Les retours sont les bienvenus —
+surtout sur ce qui se voit à l'écran (animations, marges, lisibilité).
 
 ## 📲 Installation
 
@@ -31,8 +35,10 @@ Android 7.0 (API 24) minimum. Environ 8 Mo.
   joueurs, 24 icônes de thèmes, 7 icônes d'interface. Aucun emoji système,
   donc un rendu identique sur tous les téléphones.
 
-## ⚠️ À savoir
+## ⚠️ À savoir sur cette bêta
 
 - L'app est signée avec une clé auto-signée : Android affichera un
   avertissement à l'installation, c'est attendu hors Play Store.
 - Aucune permission n'est demandée, aucune donnée ne quitte l'appareil.
+- Les scores sont volontairement remis à zéro à chaque lancement.
+- Il n'y a pas d'éditeur de packs : les 24 thèmes sont livrés avec l'app.
