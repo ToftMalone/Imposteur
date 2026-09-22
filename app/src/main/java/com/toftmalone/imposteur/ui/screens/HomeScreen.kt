@@ -13,8 +13,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -41,7 +39,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.toftmalone.imposteur.ui.components.AppLogo
+import com.toftmalone.imposteur.ui.components.AvatarArtwork
 import com.toftmalone.imposteur.ui.components.BrandBackground
 import com.toftmalone.imposteur.ui.components.PrimaryButton
 import com.toftmalone.imposteur.ui.components.SecondaryButton
@@ -74,21 +72,19 @@ fun HomeScreen(
 
             FloatingLogo()
 
-            // Décalages négatifs : le mot remonte sur le buste, si bien que le
-            // personnage a l'air de sortir du titre.
+            Spacer(Modifier.height(18.dp))
             Text(
                 text = "IMPOSTEUR",
                 style = MaterialTheme.typography.displayLarge,
                 color = Color.White,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.offset(y = (-34).dp),
             )
+            Spacer(Modifier.height(8.dp))
             Text(
                 text = "Un mot. Un intrus.\nDémasquez-le avant qu'il ne vous piège.",
                 style = MaterialTheme.typography.bodyLarge,
                 color = Color.White.copy(alpha = 0.9f),
                 textAlign = TextAlign.Center,
-                modifier = Modifier.offset(y = (-26).dp),
             )
 
             Spacer(Modifier.weight(1f))
@@ -128,7 +124,7 @@ fun HomeScreen(
     }
 }
 
-/** Le personnage du logo, qui flotte doucement pour animer le menu. */
+/** The detective badge, gently bobbing so the menu feels alive. */
 @Composable
 private fun FloatingLogo() {
     val transition = rememberInfiniteTransition(label = "logo")
@@ -142,11 +138,17 @@ private fun FloatingLogo() {
         label = "float",
     )
 
-    AppLogo(
+    Box(
         modifier = Modifier
-            .width(212.dp)
-            .graphicsLayer { translationY = float },
-    )
+            .size(148.dp)
+            .graphicsLayer { translationY = float }
+            .clip(CircleShape)
+            .background(Color.White.copy(alpha = 0.16f)),
+        contentAlignment = Alignment.Center,
+    ) {
+        // Avatar 0 is the detective, which doubles as the app mark.
+        AvatarArtwork(avatar = 0, modifier = Modifier.size(126.dp))
+    }
 }
 
 /** Discreet nudge when GitHub reports a newer release. */
