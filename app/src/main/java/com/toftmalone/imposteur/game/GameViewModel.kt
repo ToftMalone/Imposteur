@@ -3,11 +3,15 @@ package com.toftmalone.imposteur.game
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.toftmalone.imposteur.BuildConfig
+import com.toftmalone.imposteur.data.AvailableUpdate
 import com.toftmalone.imposteur.data.Avatars
 import com.toftmalone.imposteur.data.GameSettings
 import com.toftmalone.imposteur.data.ImposteurRepository
 import com.toftmalone.imposteur.data.Player
 import com.toftmalone.imposteur.data.Round
+import com.toftmalone.imposteur.data.UpdateCheckOutcome
+import com.toftmalone.imposteur.data.UpdateChecker
 import com.toftmalone.imposteur.data.RoundOutcome
 import com.toftmalone.imposteur.data.WordPack
 import com.toftmalone.imposteur.data.WordPacks
@@ -55,6 +59,11 @@ data class GameUiState(
     val outcome: RoundOutcome? = null,
     val guessWasCorrect: Boolean? = null,
     val error: GameError? = null,
+    /** Set once GitHub reports a release newer than this build. */
+    val availableUpdate: AvailableUpdate? = null,
+    /** Result of the most recent check, for the settings screen to report. */
+    val updateCheckOutcome: UpdateCheckOutcome? = null,
+    val checkingForUpdate: Boolean = false,
 ) {
     val allPacks: List<WordPack> get() = WordPacks.BUILT_IN
 
@@ -89,6 +98,7 @@ data class GameUiState(
 class GameViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = ImposteurRepository(application)
+    private val updateChecker = UpdateChecker(currentVersion = BuildConfig.VERSION_NAME)
 
     private val _state = MutableStateFlow(GameUiState())
     val state: StateFlow<GameUiState> = _state.asStateFlow()
@@ -111,6 +121,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
                     )
                 }
         }
+        checkForUpdate(userInitiated = false)
         viewModelScope.launch {
             // Seed a starter roster the first time the app is opened.
             if (repository.players.first().isEmpty()) {
@@ -119,6 +130,36 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
     }
+
+    // --- updates -------------------------------------------------------------
+
+    /**
+     * Asks GitHub whether a newer release exists. Runs once at launch and again
+     * whenever the player taps the check in the settings. A failure is silent
+     * at launch and reported only when the player asked for it.
+     */
+    fun checkForUpdate(userInitiated: Boolean) {
+        if (_state.value.checkingForUpdate) return
+        _state.value = _state.value.copy(checkingForUpdate = true)
+        viewModelScope.launch {
+            val result = updateChecker.check()
+            _state.value = _state.value.copy(
+                checkingForUpdate = false,
+                availableUpdate = result.update,
+                updateCheckOutcome = if (userInitiated || result.outcome == UpdateCheckOutcome.UPDATE_AVAILABLE) {
+                    result.outcome
+                } else {
+                    _state.value.updateCheckOutcome
+                },
+            )
+        }
+    }
+
+    fun dismissUpdateBanner() {
+        _state.value = _state.value.copy(availableUpdate = null)
+    }
+
+    fun releasesPageUrl(): String = updateChecker.releasesPageUrl()
 
     // --- roster -------------------------------------------------------------
 

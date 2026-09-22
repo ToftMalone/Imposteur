@@ -19,6 +19,15 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.FileDownload
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,6 +50,9 @@ import com.toftmalone.imposteur.ui.theme.BrandRed
 fun HomeScreen(
     playerCount: Int,
     packCount: Int,
+    updateVersion: String?,
+    onUpdateClick: () -> Unit,
+    onDismissUpdate: () -> Unit,
     onPlay: () -> Unit,
     onPacks: () -> Unit,
     onRules: () -> Unit,
@@ -76,6 +88,17 @@ fun HomeScreen(
             )
 
             Spacer(Modifier.weight(1f))
+
+            AnimatedVisibility(visible = updateVersion != null) {
+                Column {
+                    UpdateBanner(
+                        version = updateVersion.orEmpty(),
+                        onClick = onUpdateClick,
+                        onDismiss = onDismissUpdate,
+                    )
+                    Spacer(Modifier.height(14.dp))
+                }
+            }
 
             PrimaryButton(
                 text = "Jouer",
@@ -125,5 +148,62 @@ private fun FloatingLogo() {
     ) {
         // Avatar 0 is the detective, which doubles as the app mark.
         AvatarArtwork(avatar = 0, modifier = Modifier.size(126.dp))
+    }
+}
+
+/** Discreet nudge when GitHub reports a newer release. */
+@Composable
+private fun UpdateBanner(
+    version: String,
+    onClick: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val shape = RoundedCornerShape(20.dp)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(Color.White.copy(alpha = 0.18f))
+            .border(1.dp, Color.White.copy(alpha = 0.45f), shape)
+            .clickable(onClick = onClick)
+            .padding(start = 18.dp, end = 6.dp, top = 12.dp, bottom = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            imageVector = Icons.Rounded.FileDownload,
+            contentDescription = null,
+            tint = Color.White,
+            modifier = Modifier.size(22.dp),
+        )
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(start = 12.dp),
+        ) {
+            Text(
+                text = "Version $version disponible",
+                style = MaterialTheme.typography.titleMedium,
+                color = Color.White,
+            )
+            Text(
+                text = "Appuie pour la télécharger",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.White.copy(alpha = 0.85f),
+            )
+        }
+        Box(
+            modifier = Modifier
+                .size(36.dp)
+                .clip(CircleShape)
+                .clickable(onClick = onDismiss),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.Close,
+                contentDescription = "Masquer",
+                tint = Color.White.copy(alpha = 0.8f),
+                modifier = Modifier.size(18.dp),
+            )
+        }
     }
 }

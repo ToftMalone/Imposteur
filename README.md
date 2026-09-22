@@ -7,7 +7,7 @@ autour de la table. Tous les joueurs reçoivent le même mot secret… sauf les
 imposteurs. Décrivez votre mot sans le dire, démasquez l'intrus — ou bluffez
 jusqu'au bout.
 
-3 à 20 joueurs · 100 % local, aucune connexion réseau · français.
+3 à 20 joueurs · le jeu fonctionne entièrement hors-ligne · français.
 
 ---
 
@@ -26,6 +26,7 @@ jusqu'au bout.
 | 🗳️ **Vote & élimination** | La table désigne un suspect, son rôle est révélé, la manche continue ou s'arrête. |
 | 🎯 **Dernière chance** | Un imposteur démasqué peut deviner le mot des civils pour voler la victoire (comparaison insensible à la casse, aux accents et à la ponctuation). |
 | 🏆 **Scores de session** | Classement cumulé entre les manches, remis à zéro à chaque lancement de l'app. |
+| 🔔 **Mises à jour** | Au lancement, l'app demande à GitHub s'il existe une release plus récente et propose le téléchargement. Vérifiable aussi à la main depuis les paramètres. |
 | 💾 **Réglages sauvegardés** | Joueurs, avatars et options survivent à la fermeture de l'app (DataStore) — les scores, non. |
 
 ---
@@ -75,7 +76,9 @@ app/src/main/java/com/toftmalone/imposteur/
 - **Contenu figé** : les packs sont compilés dans l'app, il n'y a pas
   d'éditeur de packs. Une paire mal fichue se corrige dans `WordPacks.kt`,
   où les tests la valident.
-- **Aucune permission** demandée, aucun accès réseau.
+- **Une seule permission** (`INTERNET`), utilisée uniquement pour demander à
+  GitHub la dernière version publiée. Le jeu lui-même ne transmet rien et
+  fonctionne sans connexion.
 - **Toute l'imagerie est vectorielle et embarquée** : les emoji rendent
   différemment selon le constructeur et la version d'Android, les
   `VectorDrawable` non.

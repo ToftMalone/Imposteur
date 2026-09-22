@@ -1,5 +1,9 @@
 package com.toftmalone.imposteur.ui
 
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.ui.platform.LocalContext
+import com.toftmalone.imposteur.BuildConfig
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
@@ -50,6 +54,15 @@ private object Routes {
 fun ImposteurApp(viewModel: GameViewModel = viewModel()) {
     val navController = rememberNavController()
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+
+    // Hands the release page to whatever browser the phone uses.
+    fun openReleases() {
+        val url = state.availableUpdate?.releaseUrl ?: viewModel.releasesPageUrl()
+        runCatching {
+            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+        }
+    }
 
     NavHost(
         navController = navController,
@@ -60,6 +73,9 @@ fun ImposteurApp(viewModel: GameViewModel = viewModel()) {
             HomeScreen(
                 playerCount = state.players.size,
                 packCount = state.selectedPackCount,
+                updateVersion = state.availableUpdate?.versionName,
+                onUpdateClick = ::openReleases,
+                onDismissUpdate = viewModel::dismissUpdateBanner,
                 onPlay = { navController.navigate(Routes.SETUP) },
                 onPacks = { navController.navigate(Routes.PACKS) },
                 onRules = { navController.navigate(Routes.RULES) },
@@ -111,6 +127,12 @@ fun ImposteurApp(viewModel: GameViewModel = viewModel()) {
             SettingsScreen(
                 settings = state.settings,
                 impostersPossible = state.settings.imposterCount > 1,
+                appVersion = BuildConfig.VERSION_NAME,
+                updateVersion = state.availableUpdate?.versionName,
+                updateOutcome = state.updateCheckOutcome,
+                checkingForUpdate = state.checkingForUpdate,
+                onCheckForUpdate = { viewModel.checkForUpdate(userInitiated = true) },
+                onOpenReleases = ::openReleases,
                 onSettingsChange = viewModel::updateSettings,
                 onResetScores = viewModel::resetScores,
                 onBack = { navController.popBackStack() },
