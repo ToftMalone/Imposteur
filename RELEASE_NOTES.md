@@ -15,7 +15,7 @@ surtout sur ce qui se voit à l'écran (animations, marges, lisibilité).
 3. Android demandera d'autoriser l'installation depuis cette source — c'est
    normal pour une app qui ne vient pas du Play Store.
 
-Android 7.0 (API 24) minimum. Environ 8 Mo.
+Android 7.0 (API 24) minimum. 1,6 Mo.
 
 ## 🎮 Ce que contient cette version
 

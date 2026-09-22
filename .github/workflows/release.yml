@@ -102,5 +102,7 @@ jobs:
             ${{ env.APK_PATH }}
             checksum.txt
           draft: false
-          # Marquée pre-release: c'est une bêta, pas une version stable.
-          prerelease: true
+          # Une vraie release, pas une pre-release: GitHub masque les
+          # pre-releases de l'encart Releases et ne leur donne pas le badge
+          # "Latest". Le caractère bêta est dit dans les notes.
+          prerelease: false
