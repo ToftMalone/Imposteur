@@ -1,13 +1,19 @@
 package com.toftmalone.imposteur
 
 import com.toftmalone.imposteur.data.UpdateDownload
+import com.toftmalone.imposteur.data.UpdateDownloadException
 import com.toftmalone.imposteur.data.UpdateDownloader
 import com.toftmalone.imposteur.data.UpdatePackage
 import com.toftmalone.imposteur.data.formatMegabytes
+import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
+import kotlinx.coroutines.runBlocking
 
 class UpdateDownloaderTest {
 
@@ -61,5 +67,49 @@ class UpdateDownloaderTest {
         assertEquals("1,6 Mo", formatMegabytes(1_658_389L))
         assertEquals("0,0 Mo", formatMegabytes(0L))
         assertEquals("12,0 Mo", formatMegabytes(12L * 1024 * 1024))
+    }
+
+    @Test
+    fun `only GitHub and its file storage are contacted`() {
+        assertTrue(UpdateDownloader.isGitHubHost("github.com"))
+        assertTrue(UpdateDownloader.isGitHubHost("objects.githubusercontent.com"))
+        assertTrue(UpdateDownloader.isGitHubHost("release-assets.githubusercontent.com"))
+        assertFalse(UpdateDownloader.isGitHubHost("evilgithubusercontent.com"))
+        assertFalse(UpdateDownloader.isGitHubHost("github.com.evil.com"))
+        assertFalse(UpdateDownloader.isGitHubHost("gist.github.com.attacker.io"))
+        assertFalse(UpdateDownloader.isGitHubHost("example.com"))
+    }
+
+    @Test
+    fun `a file announced as too large is refused before anything is written`() = runBlocking {
+        val dir = createTempDirectory("imposteur-dl").toFile()
+        try {
+            val error = assertFailsWith<UpdateDownloadException> {
+                UpdateDownloader(dir).download(pkg(size = UpdateDownloader.MAX_APK_BYTES + 1))
+            }
+            assertTrue("gros" in error.message.orEmpty())
+            assertEquals(emptyList(), dir.list().orEmpty().toList())
+        } finally {
+            dir.deleteRecursively()
+        }
+    }
+
+    @Test
+    fun `addresses outside GitHub or over plain http are refused before connecting`() = runBlocking {
+        val dir = createTempDirectory("imposteur-dl").toFile()
+        try {
+            for (url in listOf(
+                "https://example.com/Imposteur.apk",
+                "http://github.com/ToftMalone/Imposteur/releases/download/v1/Imposteur.apk",
+                "file:///sdcard/Imposteur.apk",
+                "pas une adresse",
+            )) {
+                assertFailsWith<UpdateDownloadException>(url) {
+                    UpdateDownloader(dir).download(pkg().copy(downloadUrl = url))
+                }
+            }
+        } finally {
+            dir.deleteRecursively()
+        }
     }
 }

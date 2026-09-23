@@ -5,6 +5,8 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import java.io.ByteArrayOutputStream
+import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
 
@@ -97,8 +99,13 @@ class UpdateChecker(
             return UpdateCheckResult(UpdateCheckOutcome.UP_TO_DATE)
         }
 
+        // Only files attached to this repository's own releases.
+        val downloadPrefix = "https://github.com/$repository/releases/download/"
         val apk = release.assets
-            .firstOrNull { it.name.endsWith(".apk", ignoreCase = true) && it.downloadUrl.startsWith("https://") }
+            .firstOrNull {
+                it.name.endsWith(".apk", ignoreCase = true) &&
+                    it.downloadUrl.startsWith(downloadPrefix, ignoreCase = true)
+            }
             ?.let { asset ->
                 UpdatePackage(
                     fileName = asset.name,
@@ -116,7 +123,10 @@ class UpdateChecker(
             outcome = UpdateCheckOutcome.UPDATE_AVAILABLE,
             update = AvailableUpdate(
                 versionName = release.tagName.removePrefix("v").removePrefix("V"),
-                releaseUrl = release.htmlUrl.ifBlank { releasesPageUrl() },
+                // This page is opened in the browser: only this repository's releases.
+                releaseUrl = release.htmlUrl
+                    .takeIf { it.startsWith("${releasesPageUrl()}/", ignoreCase = true) }
+                    ?: releasesPageUrl(),
                 notes = release.body.orEmpty(),
                 apk = apk,
             ),
@@ -139,7 +149,7 @@ class UpdateChecker(
             if (connection.responseCode != HttpURLConnection.HTTP_OK) {
                 null
             } else {
-                connection.inputStream.bufferedReader().use { it.readText() }
+                connection.inputStream.use { readCapped(it, MAX_RESPONSE_BYTES) }
             }
         } catch (error: Exception) {
             // Offline, DNS failure, timeout: a missed check must never be
@@ -153,6 +163,23 @@ class UpdateChecker(
     companion object {
         const val DEFAULT_REPOSITORY = "ToftMalone/Imposteur"
         private const val TIMEOUT_MILLIS = 8_000
+
+        /** A release description is a few kilobytes; anything past this is not one. */
+        const val MAX_RESPONSE_BYTES = 1024 * 1024
+
+        /** The whole stream as UTF-8, or null when it is longer than [limit] bytes. */
+        fun readCapped(input: InputStream, limit: Int): String? {
+            val out = ByteArrayOutputStream()
+            val buffer = ByteArray(8 * 1024)
+            while (true) {
+                val read = input.read(buffer)
+                if (read < 0) break
+                if (out.size() + read > limit) return null
+                out.write(buffer, 0, read)
+            }
+            return out.toString(Charsets.UTF_8.name())
+        }
+
         private val SHA256_HEX = Regex("^[0-9a-f]{64}$")
     }
 }

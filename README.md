@@ -81,6 +81,10 @@ app/src/main/java/com/toftmalone/imposteur/
   `REQUEST_INSTALL_PACKAGES` pour la confier à l'installateur d'Android, qui
   demande confirmation. Le jeu lui-même ne transmet rien et fonctionne sans
   connexion.
+- **Mises à jour vérifiées** : seules les adresses de GitHub sont contactées
+  (HTTPS, redirections comprises, 50 Mo au plus), et l'APK n'est proposé à
+  l'installation que s'il s'agit bien d'Imposteur, plus récent, signé avec la
+  même clé que l'app installée (`ApkIdentity`, `ApkVerifier`).
 - **Notes de version uniques** : `app/src/main/assets/RELEASE_NOTES.md` sert à
   la fois de texte de la release GitHub et de fenêtre « Quoi de neuf ? » dans
   l'app (sans son titre, ses emoji ni la section d'installation).

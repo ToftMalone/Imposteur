@@ -1,38 +1,38 @@
-# Imposteur 1.0
+# Imposteur 1.0.1
 
-La version bêta est terminée : Imposteur passe en version stable.
+Une version consacrée à la sécurité des mises à jour, suite à un audit du
+code et de l'application.
 
-## 🎮 Le jeu
+## 🔐 Seul Imposteur peut s'installer comme mise à jour
 
-- Fais tourner le téléphone entre 3 et 20 joueurs, révèle ton rôle sur une
-  carte qui se retourne, discute et vote pour démasquer les imposteurs.
-- Plus de 20 thèmes et des centaines de paires de mots, où le mot de
-  l'imposteur ressemble volontairement beaucoup à celui des civils.
-- Réglages complets : nombre d'imposteurs, mode (mot différent, aucun mot,
-  indice de catégorie), ordre de passage, tentative de bluff finale.
-- Scores de la session, remis à zéro à chaque lancement de l'app.
+Avant de proposer l'installation, l'app vérifie désormais que le fichier
+téléchargé est bien **Imposteur**, dans une version **plus récente**, et
+signé avec **la même clé** que l'app installée. Tout autre fichier est refusé
+et supprimé, même s'il était publié sur la page des versions.
 
-## 📥 Mises à jour intégrées
+## 🌐 Téléchargements limités à GitHub
 
-Depuis la 0.2.1, l'app détecte toute seule les nouvelles versions au
-lancement, montre leurs nouveautés, télécharge l'APK et le confie à
-l'installateur d'Android — sans passer par GitHub.
+- Seules les adresses de GitHub et de son stockage de fichiers sont
+  contactées, redirections comprises, et uniquement en HTTPS.
+- Seuls les fichiers attachés aux versions d'Imposteur sont pris en compte.
+- La page ouverte dans le navigateur reste celle des versions d'Imposteur.
 
-## 🎨 Fait maison
+## 📦 Tailles plafonnées
 
-Toute l'imagerie (avatars, icônes de packs, illustrations) est dessinée pour
-l'app, en vectoriel, pour rester nette sur tous les écrans.
+Un fichier de plus de 50 Mo est refusé, et la réponse de GitHub est limitée
+à 1 Mo : une version piégée ne peut pas remplir le téléphone.
 
-## 🔐 Confidentialité
+## ⚙️ Chaîne de publication renforcée
 
-Aucune donnée de jeu ne quitte le téléphone. Les seules requêtes réseau
-servent à vérifier et télécharger les mises à jour depuis GitHub.
+Les outils utilisés pour compiler et signer l'app sont figés sur une version
+exacte, et la compilation automatique n'a plus que des droits de lecture.
 
 ## 📲 Installation
 
-1. Télécharge `Imposteur-1.0.apk` ci-dessous.
+1. Télécharge `Imposteur-1.0.1.apk` ci-dessous.
 2. Ouvre le fichier sur ton téléphone Android.
 3. Autorise l'installation depuis cette source si Android le demande.
 
 Android 7.0 (API 24) minimum. S'installe par-dessus toute version
-précédente sans perdre les joueurs ni les réglages.
+précédente sans perdre les joueurs ni les réglages. Depuis la 1.0, la mise à
+jour se fait directement dans l'app.

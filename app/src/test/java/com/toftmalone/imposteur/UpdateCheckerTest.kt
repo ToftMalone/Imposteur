@@ -79,6 +79,46 @@ class UpdateCheckerTest {
     }
 
     @Test
+    fun `only APKs attached to this repository's releases are taken`() {
+        for (url in listOf(
+            "https://example.com/ToftMalone/Imposteur/releases/download/v1/Imposteur.apk",
+            "https://github.com/SomeoneElse/Imposteur/releases/download/v1/Imposteur.apk",
+            "https://github.com/ToftMalone/Imposteur/raw/main/Imposteur.apk",
+        )) {
+            val assets = """[{"name": "Imposteur.apk", "size": 10, "browser_download_url": "$url"}]"""
+            assertNull(assertNotNull(UpdateChecker("0.2").interpret(release(assets = assets)).update).apk, url)
+        }
+    }
+
+    @Test
+    fun `the release page opened in the browser stays on this repository`() {
+        val evil = release().replace(
+            "https://github.com/ToftMalone/Imposteur/releases/tag/v0.2.1",
+            "https://evil.example/phishing",
+        )
+        assertEquals(
+            "https://github.com/ToftMalone/Imposteur/releases",
+            assertNotNull(UpdateChecker("0.2").interpret(evil).update).releaseUrl,
+        )
+        val sneaky = release().replace(
+            "https://github.com/ToftMalone/Imposteur/releases/tag/v0.2.1",
+            "https://github.com/ToftMalone/Imposteur/releases.evil.example/x",
+        )
+        assertEquals(
+            "https://github.com/ToftMalone/Imposteur/releases",
+            assertNotNull(UpdateChecker("0.2").interpret(sneaky).update).releaseUrl,
+        )
+    }
+
+    @Test
+    fun `an oversized answer is not read into memory`() {
+        val limit = 1024
+        assertEquals("petit", UpdateChecker.readCapped("petit".byteInputStream(), limit))
+        assertEquals("é".repeat(512), UpdateChecker.readCapped("é".repeat(512).byteInputStream(), limit))
+        assertNull(UpdateChecker.readCapped("x".repeat(limit + 1).byteInputStream(), limit))
+    }
+
+    @Test
     fun `an APK that is not served over https is ignored`() {
         val assets = """[{"name": "Imposteur.apk", "size": 10, "browser_download_url": "http://example.com/Imposteur.apk"}]"""
         assertNull(assertNotNull(UpdateChecker("0.2").interpret(release(assets = assets)).update).apk)
@@ -87,7 +127,7 @@ class UpdateCheckerTest {
     @Test
     fun `a digest that is not a SHA-256 is dropped, not trusted`() {
         val assets = """[{"name": "Imposteur.apk", "size": 10, "digest": "md5:abc",
-            "browser_download_url": "https://github.com/x/y/Imposteur.apk"}]"""
+            "browser_download_url": "https://github.com/ToftMalone/Imposteur/releases/download/v0.2.1/Imposteur.apk"}]"""
         val apk = assertNotNull(assertNotNull(UpdateChecker("0.2").interpret(release(assets = assets)).update).apk)
         assertNull(apk.sha256)
     }

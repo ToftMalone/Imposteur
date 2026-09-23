@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.toftmalone.imposteur.BuildConfig
 import com.toftmalone.imposteur.data.ApkInstaller
+import com.toftmalone.imposteur.data.ApkVerifier
 import com.toftmalone.imposteur.data.AppVersion
 import com.toftmalone.imposteur.data.AvailableUpdate
 import com.toftmalone.imposteur.data.Avatars
@@ -231,7 +232,11 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
                         }
                     }
                 }
-                UpdateDownload.Ready(file)
+                // Arriving intact is not enough: it must be Imposteur, newer, same key.
+                val problem = withContext(Dispatchers.IO) {
+                    ApkVerifier.problemWith(getApplication<Application>(), file).also { if (it != null) file.delete() }
+                }
+                if (problem != null) UpdateDownload.Failed(problem) else UpdateDownload.Ready(file)
             } catch (error: CancellationException) {
                 throw error
             } catch (error: UpdateDownloadException) {
