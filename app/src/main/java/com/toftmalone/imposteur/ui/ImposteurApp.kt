@@ -14,6 +14,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -188,21 +189,25 @@ private fun GameHost(
         state.phase == GamePhase.REVEAL -> {
             val player = state.revealPlayer
             if (player != null) {
-                RevealScreen(
-                    player = player,
-                    assignment = round.assignmentFor(player.id),
-                    position = state.revealIndex + 1,
-                    total = round.speakingOrder.size,
-                    isLast = state.isLastReveal,
-                    onNext = {
-                        if (state.settings.hapticsEnabled) {
-                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                        }
-                        viewModel.nextReveal()
-                    },
-                    onQuit = { showQuitDialog = true },
-                    onHelp = { showRules = true },
-                )
+                // A fresh screen per player: nothing (flip, exit animations, button
+                // colour) may carry the next player's role over from the previous one.
+                key(player.id) {
+                    RevealScreen(
+                        player = player,
+                        assignment = round.assignmentFor(player.id),
+                        position = state.revealIndex + 1,
+                        total = round.speakingOrder.size,
+                        isLast = state.isLastReveal,
+                        onNext = {
+                            if (state.settings.hapticsEnabled) {
+                                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                            }
+                            viewModel.nextReveal()
+                        },
+                        onQuit = { showQuitDialog = true },
+                        onHelp = { showRules = true },
+                    )
+                }
             }
         }
 

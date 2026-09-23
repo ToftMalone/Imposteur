@@ -5,7 +5,6 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
@@ -102,12 +101,16 @@ fun RevealScreen(
     val isImposter = assignment.role == Role.IMPOSTEUR
     val accent = if (isImposter) ImposteurRed else CivilBlue
 
-    // 0 = the neutral "pass it on" side, 1 = the role side.
-    val flip by animateFloatAsState(
-        targetValue = if (handedOver) 1f else 0f,
-        animationSpec = tween(durationMillis = FLIP_MILLIS, easing = FastOutSlowInEasing),
-        label = "card-flip",
-    )
+    // 0 = the neutral "pass it on" side, 1 = the role side. Owned by the player and
+    // only ever animated forwards: flipping back when moving on would briefly show
+    // the next player's card, and therefore their role colour, on the reverse side.
+    val flipAnim = remember(player.id) { Animatable(0f) }
+    LaunchedEffect(player.id, handedOver) {
+        if (handedOver) {
+            flipAnim.animateTo(1f, tween(durationMillis = FLIP_MILLIS, easing = FastOutSlowInEasing))
+        }
+    }
+    val flip = flipAnim.value
 
     Column(
         modifier = modifier
@@ -154,7 +157,7 @@ fun RevealScreen(
                     cameraDistance = 16f * density
                 },
         ) {
-            if (flip < 0.5f) {
+            if (!handedOver || flip < 0.5f) {
                 HandOverPanel(
                     player = player,
                     onReady = { handedOver = true },
