@@ -151,7 +151,7 @@ private fun FloatingLogo() {
     }
 }
 
-/** Discreet nudge when GitHub reports a newer release. */
+/** Discreet nudge when GitHub reports a newer release; opens the update window. */
 @Composable
 private fun UpdateBanner(
     version: String,
@@ -186,7 +186,7 @@ private fun UpdateBanner(
                 color = Color.White,
             )
             Text(
-                text = "Appuie pour la télécharger",
+                text = "Appuie pour voir les nouveautés",
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.White.copy(alpha = 0.85f),
             )

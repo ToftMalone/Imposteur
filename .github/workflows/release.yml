@@ -108,7 +108,8 @@ jobs:
           tag_name: ${{ github.event.inputs.tag || github.ref_name }}
           target_commitish: ${{ github.sha }}
           name: Imposteur ${{ github.event.inputs.tag || github.ref_name }}
-          body_path: RELEASE_NOTES.md
+          # Also bundled in the app for its "Quoi de neuf ?" window.
+          body_path: app/src/main/assets/RELEASE_NOTES.md
           files: |
             ${{ env.APK_PATH }}
             checksum.txt

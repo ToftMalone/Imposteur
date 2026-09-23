@@ -4,6 +4,8 @@ import android.content.Intent
 import android.net.Uri
 import androidx.compose.ui.platform.LocalContext
 import com.toftmalone.imposteur.BuildConfig
+import com.toftmalone.imposteur.data.ApkInstaller
+import com.toftmalone.imposteur.data.UpdateDownload
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,9 +28,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.toftmalone.imposteur.game.GamePhase
 import com.toftmalone.imposteur.game.GameViewModel
+import com.toftmalone.imposteur.ui.components.UpdateDialog
+import com.toftmalone.imposteur.ui.components.WhatsNewDialog
 import com.toftmalone.imposteur.ui.screens.DiscussionScreen
 import com.toftmalone.imposteur.ui.screens.EliminationScreen
 import com.toftmalone.imposteur.ui.screens.HomeScreen
@@ -56,13 +61,26 @@ fun ImposteurApp(viewModel: GameViewModel = viewModel()) {
     val navController = rememberNavController()
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val inGame = backStackEntry?.destination?.route == Routes.GAME
 
-    // Hands the release page to whatever browser the phone uses.
+    // Only for a release published without its APK: the page is the one place to get it.
     fun openReleases() {
         val url = state.availableUpdate?.releaseUrl ?: viewModel.releasesPageUrl()
         runCatching {
             context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
         }
+    }
+
+    fun install(download: UpdateDownload.Ready) {
+        if (!ApkInstaller.install(context, download.file)) viewModel.reportInstallFailure()
+    }
+
+    // As soon as the file is ready, Android's installer takes over and asks
+    // for confirmation; "Installer" in the window is there if it gets closed.
+    val download = state.updateDownload
+    LaunchedEffect(download) {
+        if (download is UpdateDownload.Ready) install(download)
     }
 
     NavHost(
@@ -75,7 +93,7 @@ fun ImposteurApp(viewModel: GameViewModel = viewModel()) {
                 playerCount = state.players.size,
                 packCount = state.selectedPackCount,
                 updateVersion = state.availableUpdate?.versionName,
-                onUpdateClick = ::openReleases,
+                onUpdateClick = viewModel::openUpdateDialog,
                 onDismissUpdate = viewModel::dismissUpdateBanner,
                 onPlay = { navController.navigate(Routes.SETUP) },
                 onPacks = { navController.navigate(Routes.PACKS) },
@@ -133,7 +151,8 @@ fun ImposteurApp(viewModel: GameViewModel = viewModel()) {
                 updateOutcome = state.updateCheckOutcome,
                 checkingForUpdate = state.checkingForUpdate,
                 onCheckForUpdate = { viewModel.checkForUpdate(userInitiated = true) },
-                onOpenReleases = ::openReleases,
+                onOpenUpdate = viewModel::openUpdateDialog,
+                onShowWhatsNew = viewModel::showCurrentVersionNotes,
                 onSettingsChange = viewModel::updateSettings,
                 onResetScores = viewModel::resetScores,
                 onBack = { navController.popBackStack() },
@@ -144,6 +163,28 @@ fun ImposteurApp(viewModel: GameViewModel = viewModel()) {
             GameHost(
                 viewModel = viewModel,
                 navController = navController,
+            )
+        }
+    }
+
+    // Never in the middle of a round: these wait for the menus. What's new
+    // comes first, an update found at the same launch right after.
+    if (!inGame) {
+        val whatsNew = state.whatsNew
+        val update = state.availableUpdate
+        when {
+            whatsNew != null -> WhatsNewDialog(whatsNew = whatsNew, onClose = viewModel::dismissWhatsNew)
+
+            update != null && state.showUpdateDialog -> UpdateDialog(
+                update = update,
+                currentVersion = BuildConfig.VERSION_NAME,
+                download = download,
+                canInstallPackages = ApkInstaller.canInstallPackages(context),
+                onDownload = viewModel::startUpdateDownload,
+                onCancelDownload = viewModel::cancelUpdateDownload,
+                onInstall = { (download as? UpdateDownload.Ready)?.let(::install) },
+                onLater = viewModel::closeUpdateDialog,
+                onOpenReleasePage = ::openReleases,
             )
         }
     }

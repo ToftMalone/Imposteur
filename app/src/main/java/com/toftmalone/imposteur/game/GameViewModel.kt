@@ -4,24 +4,36 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.toftmalone.imposteur.BuildConfig
+import com.toftmalone.imposteur.data.ApkInstaller
+import com.toftmalone.imposteur.data.AppVersion
 import com.toftmalone.imposteur.data.AvailableUpdate
 import com.toftmalone.imposteur.data.Avatars
 import com.toftmalone.imposteur.data.GameSettings
 import com.toftmalone.imposteur.data.ImposteurRepository
 import com.toftmalone.imposteur.data.Player
+import com.toftmalone.imposteur.data.ReleaseNotes
 import com.toftmalone.imposteur.data.Round
 import com.toftmalone.imposteur.data.UpdateCheckOutcome
 import com.toftmalone.imposteur.data.UpdateChecker
+import com.toftmalone.imposteur.data.UpdateDownload
+import com.toftmalone.imposteur.data.UpdateDownloadException
+import com.toftmalone.imposteur.data.UpdateDownloader
 import com.toftmalone.imposteur.data.RoundOutcome
+import com.toftmalone.imposteur.data.WhatsNew
 import com.toftmalone.imposteur.data.WordPack
 import com.toftmalone.imposteur.data.WordPacks
 import java.util.UUID
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /** Where the group currently is inside a round. */
 enum class GamePhase {
@@ -64,6 +76,11 @@ data class GameUiState(
     /** Result of the most recent check, for the settings screen to report. */
     val updateCheckOutcome: UpdateCheckOutcome? = null,
     val checkingForUpdate: Boolean = false,
+    /** The update window (what's new, then download and install) is open. */
+    val showUpdateDialog: Boolean = false,
+    val updateDownload: UpdateDownload = UpdateDownload.Idle,
+    /** Notes shown once after the app has been updated, or when asked for. */
+    val whatsNew: WhatsNew? = null,
 ) {
     val allPacks: List<WordPack> get() = WordPacks.BUILT_IN
 
@@ -99,6 +116,8 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = ImposteurRepository(application)
     private val updateChecker = UpdateChecker(currentVersion = BuildConfig.VERSION_NAME)
+    private val updateDownloader = UpdateDownloader(ApkInstaller.downloadDirectory(application))
+    private var downloadJob: Job? = null
 
     private val _state = MutableStateFlow(GameUiState())
     val state: StateFlow<GameUiState> = _state.asStateFlow()
@@ -122,6 +141,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
                 }
         }
         checkForUpdate(userInitiated = false)
+        showWhatsNewAfterUpdate()
         viewModelScope.launch {
             // Seed a starter roster the first time the app is opened.
             if (repository.players.first().isEmpty()) {
@@ -137,29 +157,159 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
      * Asks GitHub whether a newer release exists. Runs once at launch and again
      * whenever the player taps the check in the settings. A failure is silent
      * at launch and reported only when the player asked for it.
+     *
+     * Finding a new version opens the update window by itself; the in-game
+     * screens hold it back until the round is over.
      */
     fun checkForUpdate(userInitiated: Boolean) {
         if (_state.value.checkingForUpdate) return
-        _state.value = _state.value.copy(checkingForUpdate = true)
+        _state.update { it.copy(checkingForUpdate = true) }
         viewModelScope.launch {
+            if (!userInitiated) updateDownloader.clear()
             val result = updateChecker.check()
-            _state.value = _state.value.copy(
-                checkingForUpdate = false,
-                availableUpdate = result.update,
-                updateCheckOutcome = if (userInitiated || result.outcome == UpdateCheckOutcome.UPDATE_AVAILABLE) {
-                    result.outcome
-                } else {
-                    _state.value.updateCheckOutcome
-                },
-            )
+            val previous = _state.value.availableUpdate
+            val update = when (result.outcome) {
+                UpdateCheckOutcome.UPDATE_AVAILABLE -> result.update
+                UpdateCheckOutcome.UP_TO_DATE -> null
+                // A failed check says nothing new: keep what an earlier one found.
+                UpdateCheckOutcome.UNAVAILABLE -> previous
+            }
+            val sameVersion = update != null && update.versionName == previous?.versionName
+            if (!sameVersion) {
+                downloadJob?.cancel()
+                downloadJob = null
+            }
+            _state.update { current ->
+                current.copy(
+                    checkingForUpdate = false,
+                    availableUpdate = update,
+                    updateDownload = if (sameVersion) current.updateDownload else UpdateDownload.Idle,
+                    showUpdateDialog = when {
+                        update == null -> false
+                        userInitiated || !sameVersion -> true
+                        else -> current.showUpdateDialog
+                    },
+                    updateCheckOutcome = if (userInitiated || result.outcome == UpdateCheckOutcome.UPDATE_AVAILABLE) {
+                        result.outcome
+                    } else {
+                        current.updateCheckOutcome
+                    },
+                )
+            }
         }
     }
 
+    fun openUpdateDialog() {
+        if (_state.value.availableUpdate != null) _state.update { it.copy(showUpdateDialog = true) }
+    }
+
+    /** "Plus tard": the banner on the home screen stays to come back to it. */
+    fun closeUpdateDialog() {
+        if (_state.value.updateDownload is UpdateDownload.Running) return
+        _state.update { it.copy(showUpdateDialog = false) }
+    }
+
     fun dismissUpdateBanner() {
-        _state.value = _state.value.copy(availableUpdate = null)
+        if (_state.value.updateDownload is UpdateDownload.Running) return
+        _state.update { it.copy(availableUpdate = null, showUpdateDialog = false) }
+    }
+
+    /** Downloads the APK of the available release; the UI hands it to the installer once ready. */
+    fun startUpdateDownload() {
+        val apk = _state.value.availableUpdate?.apk ?: return
+        if (downloadJob?.isActive == true) return
+        _state.update { it.copy(updateDownload = UpdateDownload.Running(0L, apk.sizeBytes)) }
+        downloadJob = viewModelScope.launch {
+            val outcome = try {
+                val file = updateDownloader.download(apk) { downloaded, total ->
+                    _state.update { current ->
+                        // A cancelled download may still report once; it must not come back.
+                        if (current.updateDownload is UpdateDownload.Running) {
+                            current.copy(updateDownload = UpdateDownload.Running(downloaded, total))
+                        } else {
+                            current
+                        }
+                    }
+                }
+                UpdateDownload.Ready(file)
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: UpdateDownloadException) {
+                UpdateDownload.Failed(error.message ?: DOWNLOAD_FAILED)
+            } catch (error: Exception) {
+                UpdateDownload.Failed(DOWNLOAD_FAILED)
+            }
+            _state.update { it.copy(updateDownload = outcome) }
+        }
+    }
+
+    fun cancelUpdateDownload() {
+        downloadJob?.cancel()
+        downloadJob = null
+        _state.update { it.copy(updateDownload = UpdateDownload.Idle) }
+    }
+
+    /** The system installer could not be opened: say so rather than stay silent. */
+    fun reportInstallFailure() {
+        _state.update {
+            it.copy(updateDownload = UpdateDownload.Failed("Impossible d'ouvrir l'installateur d'Android."))
+        }
     }
 
     fun releasesPageUrl(): String = updateChecker.releasesPageUrl()
+
+    // --- what's new ------------------------------------------------------------
+
+    /**
+     * On the first launch after an update, shows the notes of the version now
+     * installed. A fresh install shows nothing: there is nothing "new" yet.
+     */
+    private fun showWhatsNewAfterUpdate() {
+        viewModelScope.launch {
+            val current = BuildConfig.VERSION_NAME
+            val lastSeen = repository.lastSeenVersion.first()
+            val updated = if (lastSeen == null) {
+                // 0.2 and earlier did not record the version: rely on Android's dates.
+                wasUpdatedInPlace()
+            } else {
+                AppVersion.isNewer(current, lastSeen)
+            }
+            if (lastSeen != current) repository.saveLastSeenVersion(current)
+            if (!updated) return@launch
+
+            val markdown = bundledNotes() ?: return@launch
+            // Notes left over from an older version would announce the wrong things.
+            val notesVersion = ReleaseNotes.titleVersion(markdown) ?: return@launch
+            if (!AppVersion.isSame(notesVersion, current)) return@launch
+            _state.update { it.copy(whatsNew = WhatsNew(notesVersion, ReleaseNotes.forApp(markdown))) }
+        }
+    }
+
+    /** Opens the notes of the installed version, from the settings. */
+    fun showCurrentVersionNotes() {
+        viewModelScope.launch {
+            val markdown = bundledNotes() ?: return@launch
+            val version = ReleaseNotes.titleVersion(markdown) ?: BuildConfig.VERSION_NAME
+            _state.update { it.copy(whatsNew = WhatsNew(version, ReleaseNotes.forApp(markdown))) }
+        }
+    }
+
+    fun dismissWhatsNew() {
+        _state.update { it.copy(whatsNew = null) }
+    }
+
+    private suspend fun bundledNotes(): String? = withContext(Dispatchers.IO) {
+        runCatching {
+            getApplication<Application>().assets.open(RELEASE_NOTES_ASSET).bufferedReader().use { it.readText() }
+        }.getOrNull()
+    }
+
+    private fun wasUpdatedInPlace(): Boolean = runCatching {
+        val app = getApplication<Application>()
+        @Suppress("DEPRECATION")
+        val info = app.packageManager.getPackageInfo(app.packageName, 0)
+        info.lastUpdateTime > info.firstInstallTime
+    }.getOrDefault(false)
 
     // --- roster -------------------------------------------------------------
 
@@ -344,5 +494,11 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             outcome = null,
             guessWasCorrect = null,
         )
+    }
+
+    private companion object {
+        /** Bundled copy of the notes published with the release (app/src/main/assets). */
+        const val RELEASE_NOTES_ASSET = "RELEASE_NOTES.md"
+        const val DOWNLOAD_FAILED = "Le téléchargement a échoué. Réessaie."
     }
 }

@@ -46,4 +46,8 @@ object AppVersion {
         }
         return false
     }
+
+    /** True when both name the same version ("0.2" and "v0.2.0", or "0.2.1" and "0.2.1-debug"). */
+    fun isSame(a: String, b: String): Boolean =
+        parse(a) != null && parse(b) != null && !isNewer(a, b) && !isNewer(b, a)
 }

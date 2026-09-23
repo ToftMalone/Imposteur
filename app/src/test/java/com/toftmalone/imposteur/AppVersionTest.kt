@@ -56,4 +56,12 @@ class AppVersionTest {
         assertFalse(AppVersion.isNewer("v0.2", "inconnue"))
         assertFalse(AppVersion.isNewer("", ""))
     }
+
+    @Test
+    fun `same version whatever the spelling`() {
+        assertTrue(AppVersion.isSame("0.2", "v0.2.0"))
+        assertTrue(AppVersion.isSame("0.2.1", "0.2.1-debug"))
+        assertFalse(AppVersion.isSame("0.2.1", "0.2"))
+        assertFalse(AppVersion.isSame("latest", "latest"))
+    }
 }

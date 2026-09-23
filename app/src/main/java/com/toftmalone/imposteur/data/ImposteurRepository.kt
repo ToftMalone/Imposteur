@@ -50,8 +50,16 @@ class ImposteurRepository(private val context: Context) {
         }
     }
 
+    /** The version that ran last, to tell a launch after an update apart. Null before 0.2.1. */
+    val lastSeenVersion: Flow<String?> = context.dataStore.data.map { prefs -> prefs[KEY_LAST_SEEN_VERSION] }
+
+    suspend fun saveLastSeenVersion(value: String) {
+        context.dataStore.edit { prefs -> prefs[KEY_LAST_SEEN_VERSION] = value }
+    }
+
     private companion object {
         val KEY_SETTINGS = stringPreferencesKey("settings")
         val KEY_PLAYERS = stringPreferencesKey("players")
+        val KEY_LAST_SEEN_VERSION = stringPreferencesKey("last_seen_version")
     }
 }

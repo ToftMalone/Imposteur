@@ -26,7 +26,7 @@ jusqu'au bout.
 | 🗳️ **Vote & élimination** | La table désigne un suspect, son rôle est révélé, la manche continue ou s'arrête. |
 | 🎯 **Dernière chance** | Un imposteur démasqué peut deviner le mot des civils pour voler la victoire (comparaison insensible à la casse, aux accents et à la ponctuation). |
 | 🏆 **Scores de session** | Classement cumulé entre les manches, remis à zéro à chaque lancement de l'app. |
-| 🔔 **Mises à jour** | Au lancement, l'app demande à GitHub s'il existe une release plus récente et propose le téléchargement. Vérifiable aussi à la main depuis les paramètres. |
+| 🔔 **Mises à jour** | Au lancement, l'app demande à GitHub s'il existe une release plus récente, montre ses nouveautés, la télécharge et la confie à l'installateur d'Android. Vérifiable aussi à la main depuis les paramètres. |
 | 💾 **Réglages sauvegardés** | Joueurs, avatars et options survivent à la fermeture de l'app (DataStore) — les scores, non. |
 
 ---
@@ -76,9 +76,14 @@ app/src/main/java/com/toftmalone/imposteur/
 - **Contenu figé** : les packs sont compilés dans l'app, il n'y a pas
   d'éditeur de packs. Une paire mal fichue se corrige dans `WordPacks.kt`,
   où les tests la valident.
-- **Une seule permission** (`INTERNET`), utilisée uniquement pour demander à
-  GitHub la dernière version publiée. Le jeu lui-même ne transmet rien et
-  fonctionne sans connexion.
+- **Deux permissions**, toutes deux pour les mises à jour : `INTERNET` pour
+  demander à GitHub la dernière version publiée et la télécharger,
+  `REQUEST_INSTALL_PACKAGES` pour la confier à l'installateur d'Android, qui
+  demande confirmation. Le jeu lui-même ne transmet rien et fonctionne sans
+  connexion.
+- **Notes de version uniques** : `app/src/main/assets/RELEASE_NOTES.md` sert à
+  la fois de texte de la release GitHub et de fenêtre « Quoi de neuf ? » dans
+  l'app (sans son titre, ses emoji ni la section d'installation).
 - **Toute l'imagerie est vectorielle et embarquée** : les emoji rendent
   différemment selon le constructeur et la version d'Android, les
   `VectorDrawable` non.

@@ -39,6 +39,7 @@ import com.toftmalone.imposteur.ui.components.ToggleRow
 import com.toftmalone.imposteur.ui.theme.ImposteurRed
 import com.toftmalone.imposteur.ui.theme.Ink
 import com.toftmalone.imposteur.ui.theme.InkSurface
+import com.toftmalone.imposteur.ui.theme.InkSurfaceHigh
 import com.toftmalone.imposteur.ui.theme.TextPrimary
 
 /** Everything that changes how a round plays, plus the score reset. */
@@ -51,7 +52,8 @@ fun SettingsScreen(
     updateOutcome: UpdateCheckOutcome?,
     checkingForUpdate: Boolean,
     onCheckForUpdate: () -> Unit,
-    onOpenReleases: () -> Unit,
+    onOpenUpdate: () -> Unit,
+    onShowWhatsNew: () -> Unit,
     onSettingsChange: (GameSettings) -> Unit,
     onResetScores: () -> Unit,
     onBack: () -> Unit,
@@ -144,7 +146,8 @@ fun SettingsScreen(
                 updateOutcome = updateOutcome,
                 checkingForUpdate = checkingForUpdate,
                 onCheckForUpdate = onCheckForUpdate,
-                onOpenReleases = onOpenReleases,
+                onOpenUpdate = onOpenUpdate,
+                onShowWhatsNew = onShowWhatsNew,
             )
 
             Spacer(Modifier.height(20.dp))
@@ -152,7 +155,7 @@ fun SettingsScreen(
     }
 }
 
-/** Version, credits, and the manual update check. */
+/** Version, credits, what's new, and the manual update check. */
 @Composable
 private fun AppInfoCard(
     appVersion: String,
@@ -160,7 +163,8 @@ private fun AppInfoCard(
     updateOutcome: UpdateCheckOutcome?,
     checkingForUpdate: Boolean,
     onCheckForUpdate: () -> Unit,
-    onOpenReleases: () -> Unit,
+    onOpenUpdate: () -> Unit,
+    onShowWhatsNew: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -188,7 +192,21 @@ private fun AppInfoCard(
         InfoLine("Mots", "${WordPacks.BUILT_IN.sumOf { it.pairs.size }} paires")
         InfoLine("Confidentialité", "Aucune donnée ne quitte l'appareil")
 
-        Spacer(Modifier.height(14.dp))
+        Spacer(Modifier.height(10.dp))
+        Text(
+            text = "Voir les nouveautés de cette version",
+            style = MaterialTheme.typography.labelLarge,
+            color = TextPrimary,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(16.dp))
+                .background(InkSurfaceHigh)
+                .clickable(onClick = onShowWhatsNew)
+                .padding(vertical = 14.dp),
+        )
+
+        Spacer(Modifier.height(10.dp))
 
         val status = when {
             checkingForUpdate -> "Vérification en cours…"
@@ -201,7 +219,7 @@ private fun AppInfoCard(
         val actionable = updateVersion != null
 
         Text(
-            text = if (actionable) "Télécharger la mise à jour" else "Vérifier les mises à jour",
+            text = if (actionable) "Installer la version $updateVersion" else "Vérifier les mises à jour",
             style = MaterialTheme.typography.labelLarge,
             color = if (actionable) SuccessGreen else BrandOrange,
             textAlign = TextAlign.Center,
@@ -212,7 +230,7 @@ private fun AppInfoCard(
                     if (actionable) SuccessGreen.copy(alpha = 0.14f) else BrandOrange.copy(alpha = 0.12f),
                 )
                 .clickable(enabled = !checkingForUpdate) {
-                    if (actionable) onOpenReleases() else onCheckForUpdate()
+                    if (actionable) onOpenUpdate() else onCheckForUpdate()
                 }
                 .padding(vertical = 14.dp),
         )
